@@ -22,3 +22,4 @@ so only people you share it with can join.
 3. Deploy. From then on, every push to main auto-deploys.
 
 See supabase/schema.sql for the database schema.
+
