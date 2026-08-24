@@ -45,22 +45,34 @@ export default async function ArchiveBookPage({
   }));
 
   const sectionIds = (sections ?? []).map((s) => s.id);
+  let unlockedSectionIds = new Set<string>();
   let questionsBySection: Record<string, DiscussionQuestion[]> = {};
   let commentsByQuestion: Record<string, Comment[]> = {};
   let reactionsByComment: Record<string, CommentReaction[]> = {};
   let favoriteLinesBySection: Record<string, FavoriteLine[]> = {};
 
-  if (sectionIds.length > 0) {
+  if (sectionIds.length > 0 && user) {
+    const { data: unlockRows } = await supabase
+      .from("section_unlocks")
+      .select("section_id")
+      .eq("user_id", user.id)
+      .in("section_id", sectionIds);
+    unlockedSectionIds = new Set((unlockRows ?? []).map((u) => u.section_id));
+  }
+
+  const unlockedIds = sectionIds.filter((id) => unlockedSectionIds.has(id));
+
+  if (unlockedIds.length > 0) {
     const [{ data: questionRows }, { data: lineRows }] = await Promise.all([
       supabase
         .from("discussion_questions")
         .select("*, profiles(display_name)")
-        .in("section_id", sectionIds)
+        .in("section_id", unlockedIds)
         .order("sort_order", { ascending: true }),
       supabase
         .from("favorite_lines")
         .select("*, profiles(display_name)")
-        .in("section_id", sectionIds)
+        .in("section_id", unlockedIds)
         .order("created_at", { ascending: true }),
     ]);
     questionsBySection = (questionRows ?? []).reduce((acc, q) => {
@@ -132,7 +144,7 @@ export default async function ArchiveBookPage({
               key={s.id}
               sectionId={s.id}
               title={s.title}
-              unlocked
+              unlocked={unlockedSectionIds.has(s.id)}
               initialLines={favoriteLinesBySection[s.id] ?? []}
               currentUserId={user!.id}
             />
@@ -141,7 +153,7 @@ export default async function ArchiveBookPage({
               key={s.id}
               sectionId={s.id}
               title={s.title}
-              unlocked
+              unlocked={unlockedSectionIds.has(s.id)}
               questions={questionsBySection[s.id] ?? []}
               commentsByQuestion={commentsByQuestion}
               reactionsByComment={reactionsByComment}
