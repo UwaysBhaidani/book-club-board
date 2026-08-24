@@ -70,7 +70,7 @@ export default function PotentialReadActions({
             : "rounded-pill border border-border px-3 py-1.5 text-sm font-medium text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
         }
       >
-        {voted ? "Voted" : "I want to read this"} · {count}
+        {voted ? "I'm in" : "I want to read this"} · {count}
       </button>
       {canRemove && <DeleteBookButton bookId={bookId} title={bookTitle} />}
       {error && <p className="w-full text-xs text-accent-ink">{error}</p>}
