@@ -51,8 +51,9 @@ export default async function PotentialReadPage({
       .from("want_to_read_votes")
       .select("book_id")
       .eq("user_id", user.id)
+      .eq("book_id", bookId)
       .maybeSingle();
-    isVotedByMe = myVote?.book_id === bookId;
+    isVotedByMe = !!myVote;
   }
 
   const canRemove = isAdmin || (!!user && book.added_by === user.id);

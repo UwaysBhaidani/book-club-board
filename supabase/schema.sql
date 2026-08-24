@@ -68,13 +68,13 @@ create table if not exists comments (
 );
 
 -- 6. Want-to-read votes (flag interest in a proposed book).
--- Each member gets exactly one vote across all proposals (unique on user_id).
+-- A member can vote for as many proposals as they like, but only once per
+-- book — the primary key enforces that.
 create table if not exists want_to_read_votes (
   book_id uuid not null references books(id) on delete cascade,
   user_id uuid not null references profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
-  primary key (book_id, user_id),
-  unique (user_id)
+  primary key (book_id, user_id)
 );
 
 -- 7. Section unlocks (per-user, per-section manual spoiler gate; reversible)
@@ -202,13 +202,6 @@ create policy "members can cast their own vote"
   on want_to_read_votes for insert to authenticated with check (auth.uid() = user_id);
 create policy "members can remove their own vote"
   on want_to_read_votes for delete to authenticated using (auth.uid() = user_id);
--- Needed for the upsert-on-user_id pattern that moves a vote to a different
--- book: the conflict path is a real UPDATE under the hood, which RLS blocks
--- without an explicit policy even though insert/delete are already covered.
-create policy "members can move their own vote"
-  on want_to_read_votes for update to authenticated
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
 
 -- Unlock rows are private to the user who unlocked the section — otherwise
 -- everyone's read progress would be inferable from the client.

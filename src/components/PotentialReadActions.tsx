@@ -32,13 +32,9 @@ export default function PotentialReadActions({
     setError(null);
 
     if (!voted) {
-      // A single atomic upsert keyed on the unique user_id column — this
-      // replaces any existing vote row for this user in one request, instead
-      // of a separate delete-then-insert that could silently leave the old
-      // vote in place if the insert half failed.
       const { error } = await supabase
         .from("want_to_read_votes")
-        .upsert({ book_id: bookId, user_id: currentUserId }, { onConflict: "user_id" });
+        .insert({ book_id: bookId, user_id: currentUserId });
       setLoading(false);
       if (error) {
         setError("Couldn't save your vote — try again.");
@@ -50,7 +46,8 @@ export default function PotentialReadActions({
       const { error } = await supabase
         .from("want_to_read_votes")
         .delete()
-        .eq("user_id", currentUserId);
+        .eq("user_id", currentUserId)
+        .eq("book_id", bookId);
       setLoading(false);
       if (error) {
         setError("Couldn't remove your vote — try again.");
