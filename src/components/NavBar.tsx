@@ -31,7 +31,20 @@ export default function NavBar({ displayName }: { displayName: string | null }) 
           aria-expanded={open}
           className="absolute left-4 flex h-9 w-9 flex-none items-center justify-center rounded-control border border-border text-ink-soft hover:border-accent hover:text-accent-ink"
         >
-          ☰
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 6h16" />
+            <path d="M4 12h16" />
+            <path d="M4 18h16" />
+          </svg>
         </button>
         <Link
           href="/"
