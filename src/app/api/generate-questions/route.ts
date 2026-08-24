@@ -69,16 +69,13 @@ Respond with ONLY a JSON array of 5 strings, no other text.`,
     );
   }
 
-  const rows = questions.map((q: string, i: number) => ({
-    section_id: sectionId,
-    question: q,
-    sort_order: i,
-  }));
-
-  const { error: insertError } = await supabase.from("discussion_questions").insert(rows);
-  if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+  const { error: updateError } = await supabase
+    .from("chapter_sections")
+    .update({ suggested_questions: questions })
+    .eq("id", sectionId);
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, count: rows.length });
+  return NextResponse.json({ ok: true, count: questions.length });
 }

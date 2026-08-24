@@ -1,11 +1,31 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import { createClient } from "@/lib/supabase/server";
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "The Book Club",
+  title: "The Dawgs Club",
   description: "Our book club discussion board",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -25,8 +45,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   }
 
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-stone-50 font-sans">
+    <html lang="en" className={`h-full antialiased ${fraunces.variable} ${inter.variable}`}>
+      <body className="min-h-full flex flex-col bg-paper font-body text-ink">
         <NavBar displayName={displayName} />
         <main className="flex-1">{children}</main>
       </body>

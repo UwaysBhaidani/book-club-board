@@ -1,57 +1,249 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import CommentThread from "./CommentThread";
-import type { Comment, DiscussionQuestion } from "@/lib/types";
+import BookLoader from "./BookLoader";
+import type { Comment, CommentReaction, DiscussionQuestion } from "@/lib/types";
+
+function LockedSection({
+  title,
+  onUnlock,
+  loading,
+}: {
+  title: string;
+  onUnlock: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="rounded-card border border-border bg-surface p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="font-display text-lg text-ink">{title}</h3>
+        <button
+          onClick={onUnlock}
+          disabled={loading}
+          className="flex-none rounded-pill bg-accent px-4 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
+        >
+          {loading ? <BookLoader /> : "Unlock"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AddQuestionForm({
+  sectionId,
+  nextOrder,
+  currentUserId,
+}: {
+  sectionId: string;
+  nextOrder: number;
+  currentUserId: string;
+}) {
+  const supabase = createClient();
+  const router = useRouter();
+  const [question, setQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!question.trim()) return;
+    setLoading(true);
+    await supabase.from("discussion_questions").insert({
+      section_id: sectionId,
+      question: question.trim(),
+      sort_order: nextOrder,
+      created_by: currentUserId,
+    });
+    setLoading(false);
+    setQuestion("");
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-3 flex gap-2 border-t border-border pt-3">
+      <input
+        value={question}
+        onChange={(e) => setQuestion(e.target.value)}
+        placeholder="Add a question / comment"
+        className="flex-1 rounded-control border border-border bg-paper px-3 py-2 text-sm focus:border-accent focus:outline-none"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="rounded-control border border-border px-3 py-2 text-sm text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
+      >
+        {loading ? <BookLoader /> : "Add"}
+      </button>
+    </form>
+  );
+}
+
+function SuggestedQuestions({
+  sectionId,
+  suggestions,
+  nextOrder,
+  currentUserId,
+}: {
+  sectionId: string;
+  suggestions: string[];
+  nextOrder: number;
+  currentUserId: string;
+}) {
+  const supabase = createClient();
+  const router = useRouter();
+  const [adding, setAdding] = useState<string | null>(null);
+
+  async function addSuggestion(question: string) {
+    setAdding(question);
+    await supabase.from("discussion_questions").insert({
+      section_id: sectionId,
+      question,
+      sort_order: nextOrder,
+      created_by: currentUserId,
+      is_suggested: true,
+    });
+    await supabase
+      .from("chapter_sections")
+      .update({ suggested_questions: suggestions.filter((s) => s !== question) })
+      .eq("id", sectionId);
+    setAdding(null);
+    router.refresh();
+  }
+
+  if (suggestions.length === 0) return null;
+
+  return (
+    <div className="mt-4 border-t border-border pt-3">
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
+        Suggested questions
+      </p>
+      <ul className="flex flex-col gap-2">
+        {suggestions.map((q) => (
+          <li key={q} className="flex items-start justify-between gap-3 text-sm text-ink-faint">
+            <span>{q}</span>
+            <button
+              onClick={() => addSuggestion(q)}
+              disabled={adding === q}
+              className="flex-none text-xs text-accent-ink hover:underline disabled:opacity-50"
+            >
+              {adding === q ? <BookLoader /> : "Add"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export default function SectionBoard({
   sectionId,
   title,
+  unlocked,
   questions,
-  comments,
+  commentsByQuestion,
+  reactionsByComment,
+  suggestedQuestions,
   currentUserId,
+  showSuggestions = true,
 }: {
   sectionId: string;
   title: string;
+  unlocked: boolean;
   questions: DiscussionQuestion[];
-  comments: Comment[];
+  commentsByQuestion: Record<string, Comment[]>;
+  reactionsByComment: Record<string, CommentReaction[]>;
+  suggestedQuestions: string[];
   currentUserId: string;
+  showSuggestions?: boolean;
 }) {
-  const [open, setOpen] = useState(true);
+  const supabase = createClient();
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+
+  async function unlock() {
+    setPending(true);
+    await supabase
+      .from("section_unlocks")
+      .insert({ section_id: sectionId, user_id: currentUserId });
+    setPending(false);
+    router.refresh();
+  }
+
+  async function relock() {
+    setPending(true);
+    await supabase
+      .from("section_unlocks")
+      .delete()
+      .eq("section_id", sectionId)
+      .eq("user_id", currentUserId);
+    setPending(false);
+    router.refresh();
+  }
+
+  async function deleteQuestion(questionId: string) {
+    if (!confirm("Delete this discussion question? This also removes its comments.")) return;
+    await supabase.from("discussion_questions").delete().eq("id", questionId);
+    router.refresh();
+  }
+
+  if (!unlocked) {
+    return <LockedSection title={title} onUnlock={unlock} loading={pending} />;
+  }
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between text-left"
-      >
-        <h3 className="text-base font-semibold text-stone-800">{title}</h3>
-        <span className="text-stone-400">{open ? "−" : "+"}</span>
-      </button>
+    <div className="rounded-card border border-border bg-surface p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="font-display text-lg text-ink">{title}</h3>
+        <button
+          onClick={relock}
+          disabled={pending}
+          className="flex-none text-xs text-ink-faint hover:text-accent-ink disabled:opacity-50"
+        >
+          Hide section
+        </button>
+      </div>
 
-      {open && (
-        <>
-          {questions.length > 0 && (
-            <ul className="mt-3 flex flex-col gap-2">
-              {questions.map((q, i) => (
-                <li key={q.id} className="flex gap-2 text-sm text-stone-600">
-                  <span className="font-medium text-amber-700">{i + 1}.</span>
-                  <span>{q.question}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {questions.length === 0 && (
-            <p className="mt-3 text-sm text-stone-400">
-              No discussion questions yet for this section.
-            </p>
-          )}
-          <CommentThread
-            sectionId={sectionId}
-            initialComments={comments}
-            currentUserId={currentUserId}
-          />
-        </>
+      {questions.length > 0 && (
+        <div className="mt-4 flex flex-col gap-5">
+          {questions.map((q) => (
+            <div key={q.id} className="border-t border-border pt-4 first:border-t-0 first:pt-0">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-ink">{q.question}</p>
+                  {!q.is_suggested && q.profiles?.display_name && (
+                    <p className="text-xs text-ink-faint">Added by {q.profiles.display_name}</p>
+                  )}
+                </div>
+                {q.created_by === currentUserId && (
+                  <button
+                    onClick={() => deleteQuestion(q.id)}
+                    className="flex-none text-xs text-ink-faint hover:text-accent-ink"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+              <CommentThread
+                questionId={q.id}
+                initialComments={commentsByQuestion[q.id] ?? []}
+                reactionsByComment={reactionsByComment}
+                currentUserId={currentUserId}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <AddQuestionForm sectionId={sectionId} nextOrder={questions.length} currentUserId={currentUserId} />
+      {showSuggestions && (
+        <SuggestedQuestions
+          sectionId={sectionId}
+          suggestions={suggestedQuestions}
+          nextOrder={questions.length}
+          currentUserId={currentUserId}
+        />
       )}
     </div>
   );

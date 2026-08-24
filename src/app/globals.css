@@ -1,24 +1,80 @@
 @import "tailwindcss";
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+  --color-paper: #140f0c;
+  --color-paper-raised: #201914;
+  --color-surface: #201914;
+  --color-ink: #f0e6dc;
+  --color-ink-soft: #c2ab99;
+  --color-ink-faint: #82705f;
+  --color-border: #3a2e24;
+  --color-accent: #1c3f66;
+  --color-accent-hover: #234d7d;
+  --color-accent-soft: #0f2233;
+  --color-accent-ink: #aedaf3;
+  --color-accent-contrast: #eef4fa;
+  --color-heart: #f3b6c9;
+  --color-thumb-down: #e2a37a;
+
+  --radius-card: 1.1rem;
+  --radius-control: 0.65rem;
+  --radius-pill: 999px;
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-}
+  --color-paper: var(--color-paper);
+  --color-paper-raised: var(--color-paper-raised);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-border: var(--color-border);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-accent-ink: var(--color-accent-ink);
+  --color-accent-contrast: var(--color-accent-contrast);
+  --color-heart: var(--color-heart);
+  --color-thumb-down: var(--color-thumb-down);
 
-@media (prefers-color-scheme: dark) {
-    :root {
-          --background: #0a0a0a;
-          --foreground: #ededed;
-    }
+  --radius-card: var(--radius-card);
+  --radius-control: var(--radius-control);
+  --radius-pill: var(--radius-pill);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
 
 body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+/* iOS Safari auto-zooms in when focusing a field with a computed font-size
+   under 16px — this keeps every input/select/textarea at a safe size on
+   small screens regardless of the text-sm classes used elsewhere. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@keyframes book-page-flip {
+  0%,
+  15% {
+    transform: rotateY(0deg);
+  }
+  50%,
+  65% {
+    transform: rotateY(-170deg);
+  }
+  100% {
+    transform: rotateY(-170deg);
+  }
 }

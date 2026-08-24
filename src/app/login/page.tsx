@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import BookLoader from "@/components/BookLoader";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,8 +30,8 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-[80vh] max-w-sm flex-col justify-center px-4">
-      <h1 className="mb-1 text-2xl font-semibold text-stone-800">Welcome back</h1>
-      <p className="mb-6 text-sm text-stone-500">Sign in to the book club board.</p>
+      <h1 className="mb-1 font-display text-2xl font-semibold text-ink">Welcome</h1>
+      <p className="mb-6 text-sm text-ink-soft">Sign in to the book club</p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <input
           type="email"
@@ -38,7 +39,7 @@ export default function LoginPage() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         <input
           type="password"
@@ -46,20 +47,20 @@ export default function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-accent-ink">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-800 disabled:opacity-50"
+          className="mt-2 rounded-control bg-accent px-3 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
         >
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? <BookLoader /> : "Sign in"}
         </button>
       </form>
-      <p className="mt-4 text-sm text-stone-500">
+      <p className="mt-4 text-sm text-ink-soft">
         New to the club?{" "}
-        <Link href="/signup" className="font-medium text-amber-700 hover:underline">
+        <Link href="/signup" className="font-medium text-accent-ink hover:underline">
           Create an account
         </Link>
       </p>

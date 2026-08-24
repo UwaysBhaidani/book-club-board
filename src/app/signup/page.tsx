@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import BookLoader from "@/components/BookLoader";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -45,8 +46,8 @@ export default function SignupPage() {
 
   return (
     <div className="mx-auto flex min-h-[80vh] max-w-sm flex-col justify-center px-4">
-      <h1 className="mb-1 text-2xl font-semibold text-stone-800">Join the club</h1>
-      <p className="mb-6 text-sm text-stone-500">
+      <h1 className="mb-1 font-display text-2xl font-semibold text-ink">Join the club</h1>
+      <p className="mb-6 text-sm text-ink-soft">
         This board is invite-only — you&apos;ll need the invite code from a club member.
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -56,7 +57,7 @@ export default function SignupPage() {
           placeholder="Your name"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         <input
           type="email"
@@ -64,7 +65,7 @@ export default function SignupPage() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         <input
           type="password"
@@ -73,7 +74,7 @@ export default function SignupPage() {
           placeholder="Password (6+ characters)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         <input
           type="text"
@@ -81,20 +82,20 @@ export default function SignupPage() {
           placeholder="Invite code"
           value={inviteCode}
           onChange={(e) => setInviteCode(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-accent-ink">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-800 disabled:opacity-50"
+          className="mt-2 rounded-control bg-accent px-3 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
         >
-          {loading ? "Creating account…" : "Create account"}
+          {loading ? <BookLoader /> : "Create account"}
         </button>
       </form>
-      <p className="mt-4 text-sm text-stone-500">
+      <p className="mt-4 text-sm text-ink-soft">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-amber-700 hover:underline">
+        <Link href="/login" className="font-medium text-accent-ink hover:underline">
           Sign in
         </Link>
       </p>

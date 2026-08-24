@@ -1,55 +1,78 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 
 export default function NavBar({ displayName }: { displayName: string | null }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const supabase = createClient();
+  const [open, setOpen] = useState(false);
+  const [lastPathname, setLastPathname] = useState(pathname);
+
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setOpen(false);
+  }
 
   const links = [
     { href: "/", label: "Current Read" },
     { href: "/archive", label: "Previous Reads" },
-    { href: "/want-to-read", label: "Want to Read" },
+    { href: "/want-to-read", label: "Potential Reads" },
   ];
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   if (pathname === "/login" || pathname === "/signup") return null;
 
   return (
-    <header className="border-b border-stone-200 bg-white">
-      <div className="mx-auto flex max-w-4xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <Link href="/" className="text-base font-semibold text-stone-800 sm:text-lg">
-          📖 The Book Club
+    <header className="sticky top-0 z-10 border-b border-border bg-paper/95 backdrop-blur">
+      <div className="relative mx-auto flex max-w-3xl items-center justify-center px-4 py-4">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-label="Menu"
+          aria-expanded={open}
+          className="absolute left-4 flex h-9 w-9 flex-none items-center justify-center rounded-control border border-border text-ink-soft hover:border-accent hover:text-accent-ink"
+        >
+          ☰
+        </button>
+        <Link
+          href="/"
+          className="text-center font-display text-xl font-semibold tracking-tight text-ink"
+        >
+          The Dawgs Club
         </Link>
-        <nav className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:gap-4 sm:text-sm">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={
-                pathname === l.href
-                  ? "font-medium text-amber-700"
-                  : "text-stone-600 hover:text-amber-700"
-              }
-            >
-              {l.label}
-            </Link>
-          ))}
-          {displayName && <span className="hidden text-stone-400 sm:inline">|</span>}
-          {displayName && <span className="hidden text-stone-500 sm:inline">{displayName}</span>}
-          <button onClick={signOut} className="text-stone-500 hover:text-red-600">
-            Sign out
-          </button>
-        </nav>
       </div>
+
+      {open && (
+        <nav className="border-t border-border">
+          <div className="mx-auto flex max-w-3xl flex-col gap-3 px-4 py-4 text-sm">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={
+                  pathname === l.href
+                    ? "font-medium text-accent-ink"
+                    : "text-ink-soft hover:text-accent-ink"
+                }
+              >
+                {l.label}
+              </Link>
+            ))}
+            <div className="mt-1 flex items-center justify-between border-t border-border pt-3">
+              {displayName && <span className="text-ink-soft">{displayName}</span>}
+              <Link
+                href="/profile"
+                className={
+                  pathname === "/profile"
+                    ? "font-medium text-accent-ink"
+                    : "text-ink-faint hover:text-accent-ink"
+                }
+              >
+                Profile
+              </Link>
+            </div>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

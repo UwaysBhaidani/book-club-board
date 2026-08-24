@@ -1,15 +1,28 @@
 import { createClient } from "@/lib/supabase/server";
 import SectionBoard from "@/components/SectionBoard";
-import AddSectionForm from "@/components/AddSectionForm";
+import FavoriteLinesBoard from "@/components/FavoriteLinesBoard";
 import SetCurrentBookForm from "@/components/SetCurrentBookForm";
-import FinishBookButton from "@/components/FinishBookButton";
-import type { Comment, DiscussionQuestion, ChapterSection } from "@/lib/types";
+import BookCoverHero from "@/components/BookCoverHero";
+import ReadingProgress from "@/components/ReadingProgress";
+import type { Comment, CommentReaction, DiscussionQuestion, ChapterSection, FavoriteLine } from "@/lib/types";
 
 export default async function HomePage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  let isAdmin = false;
+  let currentUserName = "You";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin, display_name")
+      .eq("id", user.id)
+      .single();
+    isAdmin = profile?.is_admin ?? false;
+    currentUserName = profile?.display_name ?? "You";
+  }
 
   const { data: currentBook } = await supabase
     .from("books")
@@ -20,10 +33,14 @@ export default async function HomePage() {
     .maybeSingle();
 
   let sections: ChapterSection[] = [];
+  let unlockedSectionIds = new Set<string>();
   let questionsBySection: Record<string, DiscussionQuestion[]> = {};
-  let commentsBySection: Record<string, Comment[]> = {};
+  let commentsByQuestion: Record<string, Comment[]> = {};
+  let reactionsByComment: Record<string, CommentReaction[]> = {};
+  let favoriteLinesBySection: Record<string, FavoriteLine[]> = {};
+  let progressEntries: { userId: string; name: string; label: string }[] = [];
 
-  if (currentBook) {
+  if (currentBook && user) {
     const { data: sectionRows } = await supabase
       .from("chapter_sections")
       .select("*")
@@ -31,71 +48,143 @@ export default async function HomePage() {
       .order("sort_order", { ascending: true });
     sections = sectionRows ?? [];
 
+    const { data: allProfiles } = await supabase
+      .from("profiles")
+      .select("id, display_name")
+      .order("display_name", { ascending: true });
+
+    const { data: progressRows } = await supabase
+      .from("reading_progress")
+      .select("user_id, label")
+      .eq("book_id", currentBook.id);
+    const labelByUser = new Map((progressRows ?? []).map((p) => [p.user_id, p.label]));
+    progressEntries = (allProfiles ?? []).map((p) => ({
+      userId: p.id,
+      name: p.display_name,
+      label: labelByUser.get(p.id) ?? "Not started",
+    }));
+
     if (sections.length > 0) {
       const sectionIds = sections.map((s) => s.id);
 
-      const { data: questionRows } = await supabase
-        .from("discussion_questions")
-        .select("*")
-        .in("section_id", sectionIds)
-        .order("sort_order", { ascending: true });
+      const { data: unlockRows } = await supabase
+        .from("section_unlocks")
+        .select("section_id")
+        .eq("user_id", user.id)
+        .in("section_id", sectionIds);
+      unlockedSectionIds = new Set((unlockRows ?? []).map((u) => u.section_id));
 
-      questionsBySection = (questionRows ?? []).reduce((acc, q) => {
-        (acc[q.section_id] ??= []).push(q);
-        return acc;
-      }, {} as Record<string, DiscussionQuestion[]>);
+      const unlockedIds = sectionIds.filter((id) => unlockedSectionIds.has(id));
 
-      const { data: commentRows } = await supabase
-        .from("comments")
-        .select("*, profiles(display_name)")
-        .in("section_id", sectionIds)
-        .order("created_at", { ascending: true });
+      if (unlockedIds.length > 0) {
+        const { data: questionRows } = await supabase
+          .from("discussion_questions")
+          .select("*, profiles(display_name)")
+          .in("section_id", unlockedIds)
+          .order("sort_order", { ascending: true });
 
-      commentsBySection = (commentRows ?? []).reduce((acc, c) => {
-        (acc[c.section_id] ??= []).push(c as unknown as Comment);
-        return acc;
-      }, {} as Record<string, Comment[]>);
+        questionsBySection = (questionRows ?? []).reduce((acc, q) => {
+          (acc[q.section_id] ??= []).push(q);
+          return acc;
+        }, {} as Record<string, DiscussionQuestion[]>);
+
+        const questionIds = (questionRows ?? []).map((q) => q.id);
+
+        if (questionIds.length > 0) {
+          const { data: commentRows } = await supabase
+            .from("comments")
+            .select("*, profiles!comments_user_id_fkey(display_name)")
+            .in("question_id", questionIds)
+            .order("created_at", { ascending: true });
+
+          commentsByQuestion = (commentRows ?? []).reduce((acc, c) => {
+            (acc[c.question_id] ??= []).push(c as unknown as Comment);
+            return acc;
+          }, {} as Record<string, Comment[]>);
+
+          const commentIds = (commentRows ?? []).map((c) => c.id);
+
+          if (commentIds.length > 0) {
+            const { data: reactionRows } = await supabase
+              .from("comment_reactions")
+              .select("*")
+              .in("comment_id", commentIds);
+
+            reactionsByComment = (reactionRows ?? []).reduce((acc, r) => {
+              (acc[r.comment_id] ??= []).push(r);
+              return acc;
+            }, {} as Record<string, CommentReaction[]>);
+          }
+        }
+
+        const { data: lineRows } = await supabase
+          .from("favorite_lines")
+          .select("*, profiles(display_name)")
+          .in("section_id", unlockedIds)
+          .order("created_at", { ascending: true });
+
+        favoriteLinesBySection = ((lineRows ?? []) as unknown as FavoriteLine[]).reduce((acc, l) => {
+          (acc[l.section_id] ??= []).push(l);
+          return acc;
+        }, {} as Record<string, FavoriteLine[]>);
+      }
     }
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      {!currentBook && user && <SetCurrentBookForm currentUserId={user.id} />}
+    <div className="mx-auto max-w-3xl px-4 py-6">
+      {!currentBook && user && isAdmin && <SetCurrentBookForm currentUserId={user.id} />}
+      {!currentBook && user && !isAdmin && (
+        <p className="text-sm text-ink-faint">
+          No current read has been set yet — check back once the club picks one.
+        </p>
+      )}
 
-      {currentBook && (
+      {currentBook && user && (
         <>
-          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-amber-700">
-                Currently Reading
-              </p>
-              <h1 className="mt-1 text-2xl font-semibold text-stone-800">{currentBook.title}</h1>
-              {currentBook.author && (
-                <p className="text-sm text-stone-500">by {currentBook.author}</p>
-              )}
-            </div>
-            <FinishBookButton bookId={currentBook.id} />
+          <BookCoverHero
+            bookId={currentBook.id}
+            title={currentBook.title}
+            author={currentBook.author}
+            coverUrl={currentBook.cover_url}
+            isAdmin={isAdmin}
+          />
+
+          <div className="mb-4">
+            <ReadingProgress
+              bookId={currentBook.id}
+              totalChapters={currentBook.total_chapters}
+              currentUserId={user.id}
+              currentUserName={currentUserName}
+              initialProgress={progressEntries}
+            />
           </div>
 
           <div className="flex flex-col gap-4">
-            {sections.map((s) => (
-              <SectionBoard
-                key={s.id}
-                sectionId={s.id}
-                title={s.title}
-                questions={questionsBySection[s.id] ?? []}
-                comments={commentsBySection[s.id] ?? []}
-                currentUserId={user!.id}
-              />
-            ))}
-          </div>
-
-          <div className="mt-4">
-            <AddSectionForm
-              bookId={currentBook.id}
-              bookTitle={currentBook.title}
-              nextOrder={sections.length}
-            />
+            {sections.map((s) =>
+              s.kind === "favorite_lines" ? (
+                <FavoriteLinesBoard
+                  key={s.id}
+                  sectionId={s.id}
+                  title={s.title}
+                  unlocked={unlockedSectionIds.has(s.id)}
+                  initialLines={favoriteLinesBySection[s.id] ?? []}
+                  currentUserId={user.id}
+                />
+              ) : (
+                <SectionBoard
+                  key={s.id}
+                  sectionId={s.id}
+                  title={s.title}
+                  unlocked={unlockedSectionIds.has(s.id)}
+                  questions={questionsBySection[s.id] ?? []}
+                  commentsByQuestion={commentsByQuestion}
+                  reactionsByComment={reactionsByComment}
+                  suggestedQuestions={s.suggested_questions ?? []}
+                  currentUserId={user.id}
+                />
+              )
+            )}
           </div>
         </>
       )}

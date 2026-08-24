@@ -2,7 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SectionBoard from "@/components/SectionBoard";
-import type { Comment, DiscussionQuestion } from "@/lib/types";
+import FavoriteLinesBoard from "@/components/FavoriteLinesBoard";
+import BookRating from "@/components/BookRating";
+import BookHero from "@/components/BookHero";
+import DeleteBookButton from "@/components/DeleteBookButton";
+import { formatMonthYear } from "@/lib/format";
+import type { Comment, CommentReaction, DiscussionQuestion, FavoriteLine } from "@/lib/types";
 
 export default async function ArchiveBookPage({
   params,
@@ -15,8 +20,34 @@ export default async function ArchiveBookPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    isAdmin = profile?.is_admin ?? false;
+  }
+
   const { data: book } = await supabase.from("books").select("*").eq("id", bookId).single();
   if (!book) notFound();
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, display_name")
+    .order("display_name", { ascending: true });
+
+  const { data: ratingRows } = await supabase
+    .from("book_ratings")
+    .select("user_id, rating")
+    .eq("book_id", bookId);
+  const ratingByUser = new Map((ratingRows ?? []).map((r) => [r.user_id, r.rating]));
+  const ratingEntries = (profiles ?? []).map((p) => ({
+    userId: p.id,
+    name: p.display_name,
+    rating: ratingByUser.get(p.id) ?? null,
+  }));
 
   const { data: sections } = await supabase
     .from("chapter_sections")
@@ -26,12 +57,14 @@ export default async function ArchiveBookPage({
 
   const sectionIds = (sections ?? []).map((s) => s.id);
   let questionsBySection: Record<string, DiscussionQuestion[]> = {};
-  let commentsBySection: Record<string, Comment[]> = {};
+  let commentsByQuestion: Record<string, Comment[]> = {};
+  let reactionsByComment: Record<string, CommentReaction[]> = {};
+  let favoriteLinesBySection: Record<string, FavoriteLine[]> = {};
 
   if (sectionIds.length > 0) {
     const { data: questionRows } = await supabase
       .from("discussion_questions")
-      .select("*")
+      .select("*, profiles(display_name)")
       .in("section_id", sectionIds)
       .order("sort_order", { ascending: true });
     questionsBySection = (questionRows ?? []).reduce((acc, q) => {
@@ -39,43 +72,96 @@ export default async function ArchiveBookPage({
       return acc;
     }, {} as Record<string, DiscussionQuestion[]>);
 
-    const { data: commentRows } = await supabase
-      .from("comments")
+    const questionIds = (questionRows ?? []).map((q) => q.id);
+
+    if (questionIds.length > 0) {
+      const { data: commentRows } = await supabase
+        .from("comments")
+        .select("*, profiles!comments_user_id_fkey(display_name)")
+        .in("question_id", questionIds)
+        .order("created_at", { ascending: true });
+      commentsByQuestion = (commentRows ?? []).reduce((acc, c) => {
+        (acc[c.question_id] ??= []).push(c as unknown as Comment);
+        return acc;
+      }, {} as Record<string, Comment[]>);
+
+      const commentIds = (commentRows ?? []).map((c) => c.id);
+
+      if (commentIds.length > 0) {
+        const { data: reactionRows } = await supabase
+          .from("comment_reactions")
+          .select("*")
+          .in("comment_id", commentIds);
+        reactionsByComment = (reactionRows ?? []).reduce((acc, r) => {
+          (acc[r.comment_id] ??= []).push(r);
+          return acc;
+        }, {} as Record<string, CommentReaction[]>);
+      }
+    }
+
+    const { data: lineRows } = await supabase
+      .from("favorite_lines")
       .select("*, profiles(display_name)")
       .in("section_id", sectionIds)
       .order("created_at", { ascending: true });
-    commentsBySection = (commentRows ?? []).reduce((acc, c) => {
-      (acc[c.section_id] ??= []).push(c as unknown as Comment);
+    favoriteLinesBySection = ((lineRows ?? []) as unknown as FavoriteLine[]).reduce((acc, l) => {
+      (acc[l.section_id] ??= []).push(l);
       return acc;
-    }, {} as Record<string, Comment[]>);
+    }, {} as Record<string, FavoriteLine[]>);
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <Link href="/archive" className="text-sm text-amber-700 hover:underline">
+    <div className="mx-auto max-w-3xl px-4 py-6">
+      <Link href="/archive" className="text-sm text-accent-ink hover:underline">
         ← Previous Reads
       </Link>
-      <div className="mb-6 mt-2 rounded-xl border border-stone-200 bg-white p-5">
-        <h1 className="text-2xl font-semibold text-stone-800">{book.title}</h1>
-        {book.author && <p className="text-sm text-stone-500">by {book.author}</p>}
-        {book.finished_at && (
-          <p className="mt-1 text-xs text-stone-400">Finished {book.finished_at}</p>
+      <BookHero
+        title={book.title}
+        author={book.author}
+        coverUrl={book.cover_url}
+        eyebrow={formatMonthYear(book.finished_at) ? `Read ${formatMonthYear(book.finished_at)}` : null}
+      >
+        {isAdmin && (
+          <div className="mt-2 flex flex-col items-center gap-2 sm:items-start">
+            <DeleteBookButton bookId={book.id} title={book.title} />
+          </div>
         )}
-      </div>
+      </BookHero>
+
+      {user && (
+        <div className="mb-4">
+          <BookRating bookId={book.id} currentUserId={user.id} initialEntries={ratingEntries} />
+        </div>
+      )}
 
       <div className="flex flex-col gap-4">
-        {(sections ?? []).map((s) => (
-          <SectionBoard
-            key={s.id}
-            sectionId={s.id}
-            title={s.title}
-            questions={questionsBySection[s.id] ?? []}
-            comments={commentsBySection[s.id] ?? []}
-            currentUserId={user!.id}
-          />
-        ))}
+        {(sections ?? []).map((s) =>
+          s.kind === "favorite_lines" ? (
+            <FavoriteLinesBoard
+              key={s.id}
+              sectionId={s.id}
+              title={s.title}
+              unlocked
+              initialLines={favoriteLinesBySection[s.id] ?? []}
+              currentUserId={user!.id}
+            />
+          ) : (
+            <SectionBoard
+              key={s.id}
+              sectionId={s.id}
+              title={s.title}
+              unlocked
+              questions={questionsBySection[s.id] ?? []}
+              commentsByQuestion={commentsByQuestion}
+              reactionsByComment={reactionsByComment}
+              suggestedQuestions={s.suggested_questions ?? []}
+              currentUserId={user!.id}
+              showSuggestions={false}
+            />
+          )
+        )}
         {(!sections || sections.length === 0) && (
-          <p className="text-sm text-stone-400">No discussion sections were recorded for this book.</p>
+          <p className="text-sm text-ink-faint">No discussion sections were recorded for this book.</p>
         )}
       </div>
     </div>
