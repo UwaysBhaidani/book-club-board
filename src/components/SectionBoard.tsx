@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CommentThread from "./CommentThread";
-import BookLoader from "./BookLoader";
 import type { Comment, CommentReaction, DiscussionQuestion } from "@/lib/types";
 
 function LockedSection({
@@ -25,7 +24,7 @@ function LockedSection({
           disabled={loading}
           className="flex-none rounded-pill bg-accent px-4 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
         >
-          {loading ? <BookLoader /> : "Unlock"}
+          {loading ? "Unlocking…" : "Unlock"}
         </button>
       </div>
     </div>
@@ -74,7 +73,7 @@ function AddQuestionForm({
         disabled={loading}
         className="rounded-control border border-border px-3 py-2 text-sm text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
       >
-        {loading ? <BookLoader /> : "Add"}
+        Add
       </button>
     </form>
   );
@@ -128,7 +127,7 @@ function SuggestedQuestions({
               disabled={adding === q}
               className="flex-none text-xs text-accent-ink hover:underline disabled:opacity-50"
             >
-              {adding === q ? <BookLoader /> : "Add"}
+              {adding === q ? "Adding…" : "Add"}
             </button>
           </li>
         ))}

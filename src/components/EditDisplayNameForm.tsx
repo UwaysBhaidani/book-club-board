@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import BookLoader from "./BookLoader";
 
 export default function EditDisplayNameForm({
   userId,
@@ -50,7 +49,7 @@ export default function EditDisplayNameForm({
         disabled={saving || !name.trim() || name.trim() === currentName}
         className="self-start rounded-pill bg-accent px-4 py-1.5 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
       >
-        {saving ? <BookLoader /> : "Save"}
+        {saving ? "Saving…" : "Save"}
       </button>
       {error && <p className="text-xs text-accent-ink">{error}</p>}
     </form>

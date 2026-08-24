@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import BookLoader from "@/components/BookLoader";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -90,7 +89,7 @@ export default function SignupPage() {
           disabled={loading}
           className="mt-2 rounded-control bg-accent px-3 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
         >
-          {loading ? <BookLoader /> : "Create account"}
+          {loading ? "Creating account…" : "Create account"}
         </button>
       </form>
       <p className="mt-4 text-sm text-ink-soft">

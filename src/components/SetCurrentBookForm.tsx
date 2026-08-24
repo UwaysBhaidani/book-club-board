@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import BookSearchPicker, { CoverThumb } from "./BookSearchPicker";
-import BookLoader from "./BookLoader";
 import type { BookSearchResult } from "@/lib/types";
 import { FINAL_THOUGHTS_QUESTIONS } from "@/lib/constants";
 
@@ -235,7 +234,7 @@ export default function SetCurrentBookForm({ currentUserId }: { currentUserId: s
                   disabled={suggesting}
                   className="rounded-pill border border-border px-3 py-1.5 text-sm text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
                 >
-                  {suggesting ? <BookLoader /> : "Suggest chapter splits"}
+                  {suggesting ? "Suggesting…" : "Suggest chapter splits"}
                 </button>
               </div>
             )}
@@ -263,7 +262,7 @@ export default function SetCurrentBookForm({ currentUserId }: { currentUserId: s
               disabled={loading}
               className="rounded-pill bg-accent px-4 py-1.5 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
             >
-              {loading ? <BookLoader /> : "Set as current read"}
+              {loading ? "Setting…" : "Set as current read"}
             </button>
             <button
               onClick={() => setSelected(null)}

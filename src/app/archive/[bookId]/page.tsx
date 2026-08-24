@@ -20,40 +20,29 @@ export default async function ArchiveBookPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let isAdmin = false;
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-    isAdmin = profile?.is_admin ?? false;
-  }
-
-  const { data: book } = await supabase.from("books").select("*").eq("id", bookId).single();
+  const [profileResult, { data: book }, { data: profiles }, { data: ratingRows }, { data: sections }] =
+    await Promise.all([
+      user
+        ? supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+        : Promise.resolve({ data: null }),
+      supabase.from("books").select("*").eq("id", bookId).single(),
+      supabase.from("profiles").select("id, display_name").order("display_name", { ascending: true }),
+      supabase.from("book_ratings").select("user_id, rating").eq("book_id", bookId),
+      supabase
+        .from("chapter_sections")
+        .select("*")
+        .eq("book_id", bookId)
+        .order("sort_order", { ascending: true }),
+    ]);
+  const isAdmin = profileResult.data?.is_admin ?? false;
   if (!book) notFound();
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, display_name")
-    .order("display_name", { ascending: true });
-
-  const { data: ratingRows } = await supabase
-    .from("book_ratings")
-    .select("user_id, rating")
-    .eq("book_id", bookId);
   const ratingByUser = new Map((ratingRows ?? []).map((r) => [r.user_id, r.rating]));
   const ratingEntries = (profiles ?? []).map((p) => ({
     userId: p.id,
     name: p.display_name,
     rating: ratingByUser.get(p.id) ?? null,
   }));
-
-  const { data: sections } = await supabase
-    .from("chapter_sections")
-    .select("*")
-    .eq("book_id", bookId)
-    .order("sort_order", { ascending: true });
 
   const sectionIds = (sections ?? []).map((s) => s.id);
   let questionsBySection: Record<string, DiscussionQuestion[]> = {};
@@ -62,15 +51,27 @@ export default async function ArchiveBookPage({
   let favoriteLinesBySection: Record<string, FavoriteLine[]> = {};
 
   if (sectionIds.length > 0) {
-    const { data: questionRows } = await supabase
-      .from("discussion_questions")
-      .select("*, profiles(display_name)")
-      .in("section_id", sectionIds)
-      .order("sort_order", { ascending: true });
+    const [{ data: questionRows }, { data: lineRows }] = await Promise.all([
+      supabase
+        .from("discussion_questions")
+        .select("*, profiles(display_name)")
+        .in("section_id", sectionIds)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("favorite_lines")
+        .select("*, profiles(display_name)")
+        .in("section_id", sectionIds)
+        .order("created_at", { ascending: true }),
+    ]);
     questionsBySection = (questionRows ?? []).reduce((acc, q) => {
       (acc[q.section_id] ??= []).push(q);
       return acc;
     }, {} as Record<string, DiscussionQuestion[]>);
+
+    favoriteLinesBySection = ((lineRows ?? []) as unknown as FavoriteLine[]).reduce((acc, l) => {
+      (acc[l.section_id] ??= []).push(l);
+      return acc;
+    }, {} as Record<string, FavoriteLine[]>);
 
     const questionIds = (questionRows ?? []).map((q) => q.id);
 
@@ -98,16 +99,6 @@ export default async function ArchiveBookPage({
         }, {} as Record<string, CommentReaction[]>);
       }
     }
-
-    const { data: lineRows } = await supabase
-      .from("favorite_lines")
-      .select("*, profiles(display_name)")
-      .in("section_id", sectionIds)
-      .order("created_at", { ascending: true });
-    favoriteLinesBySection = ((lineRows ?? []) as unknown as FavoriteLine[]).reduce((acc, l) => {
-      (acc[l.section_id] ??= []).push(l);
-      return acc;
-    }, {} as Record<string, FavoriteLine[]>);
   }
 
   return (

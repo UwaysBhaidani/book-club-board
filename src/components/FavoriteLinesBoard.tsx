@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import FavoriteLines from "./FavoriteLines";
-import BookLoader from "./BookLoader";
 import type { FavoriteLine } from "@/lib/types";
 
 export default function FavoriteLinesBoard({
@@ -52,7 +51,7 @@ export default function FavoriteLinesBoard({
             disabled={pending}
             className="flex-none rounded-pill bg-accent px-4 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
           >
-            {pending ? <BookLoader /> : "Unlock"}
+            {pending ? "Unlocking…" : "Unlock"}
           </button>
         </div>
       </div>

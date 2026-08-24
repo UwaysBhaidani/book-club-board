@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import BookLoader from "./BookLoader";
 
 export default function FinishBookButton({ bookId }: { bookId: string }) {
   const supabase = createClient();
@@ -34,7 +33,7 @@ export default function FinishBookButton({ bookId }: { bookId: string }) {
         disabled={loading}
         className="rounded-pill border border-border px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
       >
-        {loading ? <BookLoader /> : "Mark as finished"}
+        {loading ? "Moving…" : "Mark as finished"}
       </button>
       {error && <p className="mt-1 text-xs text-accent-ink">{error}</p>}
     </div>

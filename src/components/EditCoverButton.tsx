@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import BookLoader from "./BookLoader";
 
 export default function EditCoverButton({
   bookId,
@@ -60,7 +59,7 @@ export default function EditCoverButton({
           disabled={saving}
           className="rounded-pill bg-accent px-3 py-1.5 text-xs font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
         >
-          {saving ? <BookLoader /> : "Save"}
+          {saving ? "Saving…" : "Save"}
         </button>
         <button
           onClick={() => {

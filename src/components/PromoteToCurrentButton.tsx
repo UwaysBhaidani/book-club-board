@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { FINAL_THOUGHTS_QUESTIONS } from "@/lib/constants";
-import BookLoader from "./BookLoader";
 
 type PendingSection = { title: string; selected: boolean };
 
@@ -228,7 +227,7 @@ export default function PromoteToCurrentButton({
               disabled={suggesting}
               className="rounded-pill border border-border px-3 py-1.5 text-sm text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
             >
-              {suggesting ? <BookLoader /> : "Suggest chapter splits"}
+              {suggesting ? "Suggesting…" : "Suggest chapter splits"}
             </button>
           </div>
         )}
@@ -256,7 +255,7 @@ export default function PromoteToCurrentButton({
           disabled={loading}
           className="rounded-pill bg-accent px-4 py-1.5 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
         >
-          {loading ? <BookLoader /> : "Confirm"}
+          {loading ? "Setting…" : "Confirm"}
         </button>
         <button
           onClick={() => setExpanded(false)}

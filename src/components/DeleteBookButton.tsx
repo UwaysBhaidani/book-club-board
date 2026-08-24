@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import BookLoader from "./BookLoader";
 
 export default function DeleteBookButton({
   bookId,
@@ -41,7 +40,7 @@ export default function DeleteBookButton({
         disabled={loading}
         className="flex-none rounded-pill border border-border px-3 py-1.5 text-xs font-medium text-ink-faint hover:border-accent hover:text-accent-ink disabled:opacity-50"
       >
-        {loading ? <BookLoader /> : "Remove"}
+        {loading ? "Removing…" : "Remove"}
       </button>
       {error && <p className="text-xs text-accent-ink">{error}</p>}
     </div>

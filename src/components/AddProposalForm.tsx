@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import BookSearchPicker, { CoverThumb } from "./BookSearchPicker";
-import BookLoader from "./BookLoader";
 import type { BookSearchResult } from "@/lib/types";
 
 export default function AddProposalForm({ currentUserId }: { currentUserId: string }) {
@@ -55,7 +54,7 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
                 disabled={loading}
                 className="rounded-pill bg-accent px-4 py-1.5 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
               >
-                {loading ? <BookLoader /> : "Add to list"}
+                {loading ? "Adding…" : "Add to list"}
               </button>
               <button
                 onClick={() => setSelected(null)}

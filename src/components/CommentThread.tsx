@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import BookLoader from "./BookLoader";
 import type { Comment, CommentReaction, CommentReactionType } from "@/lib/types";
 
 function timeAgo(iso: string) {
@@ -309,7 +308,7 @@ export default function CommentThread({
                 disabled={editSaving}
                 className="rounded-pill bg-accent px-3 py-1 text-xs font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
               >
-                {editSaving ? <BookLoader /> : "Save"}
+                {editSaving ? "Saving…" : "Save"}
               </button>
               <button
                 onClick={cancelEdit}
@@ -371,7 +370,7 @@ export default function CommentThread({
               disabled={replyPosting}
               className="rounded-control bg-accent px-3 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
             >
-              {replyPosting ? <BookLoader /> : "Reply"}
+              Reply
             </button>
           </form>
         )}
@@ -402,7 +401,7 @@ export default function CommentThread({
           disabled={posting}
           className="rounded-control bg-accent px-3 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
         >
-          {posting ? <BookLoader /> : "Post"}
+          Post
         </button>
       </form>
       {error && <p className="mt-1 text-xs text-accent-ink">{error}</p>}

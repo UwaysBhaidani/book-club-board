@@ -12,25 +12,20 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let isAdmin = false;
-  let currentUserName = "You";
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_admin, display_name")
-      .eq("id", user.id)
-      .single();
-    isAdmin = profile?.is_admin ?? false;
-    currentUserName = profile?.display_name ?? "You";
-  }
-
-  const { data: currentBook } = await supabase
-    .from("books")
-    .select("*")
-    .eq("status", "current")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const [profileResult, { data: currentBook }] = await Promise.all([
+    user
+      ? supabase.from("profiles").select("is_admin, display_name").eq("id", user.id).single()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("books")
+      .select("*")
+      .eq("status", "current")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  const isAdmin = profileResult.data?.is_admin ?? false;
+  const currentUserName = profileResult.data?.display_name ?? "You";
 
   let sections: ChapterSection[] = [];
   let unlockedSectionIds = new Set<string>();
@@ -41,22 +36,17 @@ export default async function HomePage() {
   let progressEntries: { userId: string; name: string; label: string }[] = [];
 
   if (currentBook && user) {
-    const { data: sectionRows } = await supabase
-      .from("chapter_sections")
-      .select("*")
-      .eq("book_id", currentBook.id)
-      .order("sort_order", { ascending: true });
+    const [{ data: sectionRows }, { data: allProfiles }, { data: progressRows }] = await Promise.all([
+      supabase
+        .from("chapter_sections")
+        .select("*")
+        .eq("book_id", currentBook.id)
+        .order("sort_order", { ascending: true }),
+      supabase.from("profiles").select("id, display_name").order("display_name", { ascending: true }),
+      supabase.from("reading_progress").select("user_id, label").eq("book_id", currentBook.id),
+    ]);
     sections = sectionRows ?? [];
 
-    const { data: allProfiles } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .order("display_name", { ascending: true });
-
-    const { data: progressRows } = await supabase
-      .from("reading_progress")
-      .select("user_id, label")
-      .eq("book_id", currentBook.id);
     const labelByUser = new Map((progressRows ?? []).map((p) => [p.user_id, p.label]));
     progressEntries = (allProfiles ?? []).map((p) => ({
       userId: p.id,
@@ -77,16 +67,28 @@ export default async function HomePage() {
       const unlockedIds = sectionIds.filter((id) => unlockedSectionIds.has(id));
 
       if (unlockedIds.length > 0) {
-        const { data: questionRows } = await supabase
-          .from("discussion_questions")
-          .select("*, profiles(display_name)")
-          .in("section_id", unlockedIds)
-          .order("sort_order", { ascending: true });
+        const [{ data: questionRows }, { data: lineRows }] = await Promise.all([
+          supabase
+            .from("discussion_questions")
+            .select("*, profiles(display_name)")
+            .in("section_id", unlockedIds)
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("favorite_lines")
+            .select("*, profiles(display_name)")
+            .in("section_id", unlockedIds)
+            .order("created_at", { ascending: true }),
+        ]);
 
         questionsBySection = (questionRows ?? []).reduce((acc, q) => {
           (acc[q.section_id] ??= []).push(q);
           return acc;
         }, {} as Record<string, DiscussionQuestion[]>);
+
+        favoriteLinesBySection = ((lineRows ?? []) as unknown as FavoriteLine[]).reduce((acc, l) => {
+          (acc[l.section_id] ??= []).push(l);
+          return acc;
+        }, {} as Record<string, FavoriteLine[]>);
 
         const questionIds = (questionRows ?? []).map((q) => q.id);
 
@@ -116,17 +118,6 @@ export default async function HomePage() {
             }, {} as Record<string, CommentReaction[]>);
           }
         }
-
-        const { data: lineRows } = await supabase
-          .from("favorite_lines")
-          .select("*, profiles(display_name)")
-          .in("section_id", unlockedIds)
-          .order("created_at", { ascending: true });
-
-        favoriteLinesBySection = ((lineRows ?? []) as unknown as FavoriteLine[]).reduce((acc, l) => {
-          (acc[l.section_id] ??= []).push(l);
-          return acc;
-        }, {} as Record<string, FavoriteLine[]>);
       }
     }
   }
