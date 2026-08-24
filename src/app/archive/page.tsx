@@ -30,7 +30,7 @@ export default async function ArchivePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <div className="mx-auto max-w-5xl px-4 py-6">
       <h1 className="font-display text-2xl font-semibold text-ink">Previous Reads</h1>
       <p className="mb-6 text-sm text-ink-soft">
         Every book the club has finished, with its discussion board preserved.

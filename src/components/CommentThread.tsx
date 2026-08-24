@@ -300,7 +300,7 @@ export default function CommentThread({
               value={editBody}
               onChange={(e) => setEditBody(e.target.value)}
               rows={2}
-              className="w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+              className="w-full rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
             />
             <div className="flex gap-2">
               <button
@@ -320,7 +320,7 @@ export default function CommentThread({
             </div>
           </div>
         ) : (
-          <p className="mt-1 whitespace-pre-wrap text-sm text-ink-soft">{c.body}</p>
+          <p className="discussion-text mt-1 whitespace-pre-wrap text-sm text-ink-soft">{c.body}</p>
         )}
 
         <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -362,7 +362,7 @@ export default function CommentThread({
               value={replyBody}
               onChange={(e) => setReplyBody(e.target.value)}
               placeholder="Write a reply…"
-              className="flex-1 rounded-control border border-border bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
+              className="flex-1 rounded-control border border-border bg-paper px-3 py-2 text-sm focus:border-accent focus:outline-none"
               autoFocus
             />
             <button
@@ -393,8 +393,8 @@ export default function CommentThread({
         <input
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Share your thoughts…"
-          className="flex-1 rounded-control border border-border bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          placeholder="Share your thoughts on this…"
+          className="flex-1 rounded-control border border-border bg-paper px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
         <button
           type="submit"

@@ -35,7 +35,7 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
   }
 
   return (
-    <div className="mb-6 rounded-card border border-dashed border-border bg-surface p-4">
+    <div className="mb-6 rounded-card border border-border bg-surface p-4">
       <p className="mb-2 text-sm font-medium text-ink">Propose a book</p>
 
       {!selected && <BookSearchPicker onSelect={setSelected} />}

@@ -56,7 +56,7 @@ export default function SignupPage() {
           placeholder="Your name"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+          className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         <input
           type="email"
@@ -64,7 +64,7 @@ export default function SignupPage() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+          className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         <input
           type="password"
@@ -73,7 +73,7 @@ export default function SignupPage() {
           placeholder="Password (6+ characters)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+          className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         <input
           type="text"
@@ -81,7 +81,7 @@ export default function SignupPage() {
           placeholder="Invite code"
           value={inviteCode}
           onChange={(e) => setInviteCode(e.target.value)}
-          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+          className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
         {error && <p className="text-sm text-accent-ink">{error}</p>}
         <button

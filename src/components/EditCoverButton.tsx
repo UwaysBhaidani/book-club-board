@@ -51,7 +51,7 @@ export default function EditCoverButton({
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder="Paste an image URL…"
-        className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+        className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
       />
       <div className="flex gap-2">
         <button

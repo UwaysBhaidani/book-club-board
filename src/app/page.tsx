@@ -123,7 +123,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <div className="mx-auto max-w-5xl px-4 py-6">
       {!currentBook && user && isAdmin && <SetCurrentBookForm currentUserId={user.id} />}
       {!currentBook && user && !isAdmin && (
         <p className="text-sm text-ink-faint">

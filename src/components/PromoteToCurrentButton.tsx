@@ -186,7 +186,7 @@ export default function PromoteToCurrentButton({
           value={totalChapters}
           onChange={(e) => setTotalChapters(e.target.value)}
           placeholder="e.g. 24"
-          className="w-20 rounded-control border border-border bg-surface px-2 py-1 text-sm text-ink focus:border-accent focus:outline-none"
+          className="w-20 rounded-control border border-border bg-paper px-2 py-1 text-sm text-ink focus:border-accent focus:outline-none"
         />
       </label>
 
@@ -219,7 +219,7 @@ export default function PromoteToCurrentButton({
                 min={1}
                 value={pagesPerWeek}
                 onChange={(e) => setPagesPerWeek(e.target.value)}
-                className="w-20 rounded-control border border-border bg-surface px-2 py-1 text-sm text-ink focus:border-accent focus:outline-none"
+                className="w-20 rounded-control border border-border bg-paper px-2 py-1 text-sm text-ink focus:border-accent focus:outline-none"
               />
             </label>
             <button
@@ -238,7 +238,7 @@ export default function PromoteToCurrentButton({
             value={manualTitle}
             onChange={(e) => setManualTitle(e.target.value)}
             placeholder="e.g. Chapters 1–5"
-            className="flex-1 rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+            className="flex-1 rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
           />
           <button
             onClick={addManualSection}

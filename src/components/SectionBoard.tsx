@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CommentThread from "./CommentThread";
+import PadlockIcon from "./PadlockIcon";
+import { withMinDuration } from "@/lib/timing";
 import type { Comment, CommentReaction, DiscussionQuestion } from "@/lib/types";
 
 function LockedSection({
@@ -22,9 +24,13 @@ function LockedSection({
         <button
           onClick={onUnlock}
           disabled={loading}
-          className="flex-none rounded-pill bg-accent px-4 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
+          aria-label="Unlock"
+          title="Unlock"
+          className={`flex flex-none appearance-none items-center justify-center rounded-full border-2 bg-accent p-2.5 text-accent-contrast hover:border-accent-ink active:border-accent-ink disabled:opacity-50 ${
+            loading ? "border-accent-ink" : "border-transparent"
+          }`}
         >
-          {loading ? "Unlocking…" : "Unlock"}
+          <PadlockIcon unlocked={loading} />
         </button>
       </div>
     </div>
@@ -65,7 +71,7 @@ function AddQuestionForm({
       <input
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Add a question / comment"
+        placeholder="Start a new discussion…"
         className="flex-1 rounded-control border border-border bg-paper px-3 py-2 text-sm focus:border-accent focus:outline-none"
       />
       <button
@@ -163,20 +169,26 @@ export default function SectionBoard({
 
   async function unlock() {
     setPending(true);
-    await supabase
-      .from("section_unlocks")
-      .insert({ section_id: sectionId, user_id: currentUserId });
+    // Hold the open-padlock pose visible for a moment even if the write
+    // itself resolves almost instantly, so it doesn't flash by unseen.
+    await withMinDuration(
+      supabase.from("section_unlocks").insert({ section_id: sectionId, user_id: currentUserId }),
+      350
+    );
     setPending(false);
     router.refresh();
   }
 
   async function relock() {
     setPending(true);
-    await supabase
-      .from("section_unlocks")
-      .delete()
-      .eq("section_id", sectionId)
-      .eq("user_id", currentUserId);
+    await withMinDuration(
+      supabase
+        .from("section_unlocks")
+        .delete()
+        .eq("section_id", sectionId)
+        .eq("user_id", currentUserId),
+      350
+    );
     setPending(false);
     router.refresh();
   }
@@ -198,9 +210,11 @@ export default function SectionBoard({
         <button
           onClick={relock}
           disabled={pending}
-          className="flex-none text-xs text-ink-faint hover:text-accent-ink disabled:opacity-50"
+          aria-label="Hide section"
+          title="Hide section"
+          className="flex flex-none appearance-none items-center justify-center rounded-full p-2.5 text-ink-faint hover:bg-accent-soft hover:text-accent-ink disabled:opacity-50"
         >
-          Hide section
+          <PadlockIcon unlocked={!pending} />
         </button>
       </div>
 
@@ -210,7 +224,7 @@ export default function SectionBoard({
             <div key={q.id} className="border-t border-border pt-4 first:border-t-0 first:pt-0">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-ink">{q.question}</p>
+                  <p className="discussion-text text-sm font-medium text-ink">{q.question}</p>
                   {!q.is_suggested && q.profiles?.display_name && (
                     <p className="text-xs text-ink-faint">Added by {q.profiles.display_name}</p>
                   )}

@@ -20,24 +20,45 @@ export default function PotentialReadActions({
   currentUserId: string;
   canRemove: boolean;
 }) {
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
   const router = useRouter();
   const [voted, setVoted] = useState(initialVoted);
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function toggleVote() {
     setLoading(true);
-    await supabase.from("want_to_read_votes").delete().eq("user_id", currentUserId);
+    setError(null);
+
     if (!voted) {
-      await supabase.from("want_to_read_votes").insert({ book_id: bookId, user_id: currentUserId });
+      // A single atomic upsert keyed on the unique user_id column — this
+      // replaces any existing vote row for this user in one request, instead
+      // of a separate delete-then-insert that could silently leave the old
+      // vote in place if the insert half failed.
+      const { error } = await supabase
+        .from("want_to_read_votes")
+        .upsert({ book_id: bookId, user_id: currentUserId }, { onConflict: "user_id" });
+      setLoading(false);
+      if (error) {
+        setError("Couldn't save your vote — try again.");
+        return;
+      }
       setVoted(true);
       setCount((c) => c + 1);
     } else {
+      const { error } = await supabase
+        .from("want_to_read_votes")
+        .delete()
+        .eq("user_id", currentUserId);
+      setLoading(false);
+      if (error) {
+        setError("Couldn't remove your vote — try again.");
+        return;
+      }
       setVoted(false);
       setCount((c) => Math.max(0, c - 1));
     }
-    setLoading(false);
     router.refresh();
   }
 
@@ -55,6 +76,7 @@ export default function PotentialReadActions({
         {voted ? "Voted" : "I want to read this"} · {count}
       </button>
       {canRemove && <DeleteBookButton bookId={bookId} title={bookTitle} />}
+      {error && <p className="w-full text-xs text-accent-ink">{error}</p>}
     </div>
   );
 }

@@ -68,7 +68,7 @@ export default async function PotentialReadPage({
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="mx-auto max-w-3xl px-4 py-6">
       <Link href="/want-to-read" className="text-sm text-accent-ink hover:underline">
         ← Potential Reads
       </Link>

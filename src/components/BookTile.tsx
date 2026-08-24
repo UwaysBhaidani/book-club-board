@@ -16,7 +16,7 @@ export default function BookTile({
 }) {
   return (
     <Link href={href} className="group flex flex-col gap-2">
-      <div className="flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-card border border-border bg-accent-soft shadow-sm transition group-hover:border-accent">
+      <div className="flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-card border border-border bg-accent-soft shadow-sm transition group-hover:border-accent-ink">
         <CoverThumb url={coverUrl} />
       </div>
       <div>

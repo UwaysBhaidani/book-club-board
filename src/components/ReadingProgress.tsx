@@ -5,6 +5,19 @@ import { createClient } from "@/lib/supabase/client";
 
 type Entry = { userId: string; name: string; label: string };
 
+const CONFETTI_COLORS = ["#1c3f66", "#aedaf3", "#f3b6c9", "#e2a37a", "#f0e6dc"];
+
+function makeConfetti(count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 0.3,
+    duration: 1.6 + Math.random() * 0.9,
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    drift: (Math.random() - 0.5) * 60,
+  }));
+}
+
 export default function ReadingProgress({
   bookId,
   totalChapters,
@@ -22,6 +35,7 @@ export default function ReadingProgress({
   const [entries, setEntries] = useState(initialProgress);
   const [showOthers, setShowOthers] = useState(false);
   const [dragFrac, setDragFrac] = useState<number | null>(null);
+  const [confetti, setConfetti] = useState<ReturnType<typeof makeConfetti> | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
 
@@ -52,6 +66,7 @@ export default function ReadingProgress({
 
   function commit(index: number) {
     const label = stages[index];
+    const wasFinished = mine?.label === "Finished";
     setEntries((prev) => [
       ...prev.filter((e) => e.userId !== currentUserId),
       { userId: currentUserId, name: currentUserName, label },
@@ -62,6 +77,10 @@ export default function ReadingProgress({
         { book_id: bookId, user_id: currentUserId, label, updated_at: new Date().toISOString() },
         { onConflict: "book_id,user_id" }
       );
+    if (label === "Finished" && !wasFinished) {
+      setConfetti(makeConfetti(90));
+      setTimeout(() => setConfetti(null), 2600);
+    }
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -84,7 +103,26 @@ export default function ReadingProgress({
   }
 
   return (
-    <div className="rounded-card border border-border bg-surface p-4">
+    <div className="relative rounded-card border border-border bg-surface p-4">
+      {confetti && (
+        <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+          {confetti.map((c) => (
+            <span
+              key={c.id}
+              className="absolute top-0 h-3.5 w-2"
+              style={
+                {
+                  left: `${c.left}%`,
+                  backgroundColor: c.color,
+                  animation: `confetti-fall ${c.duration}s ease-in both`,
+                  animationDelay: `${c.delay}s`,
+                  "--drift": `${c.drift}px`,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+        </div>
+      )}
       <div className="mb-3 flex items-baseline justify-between">
         <p className="text-sm font-medium text-ink">My progress</p>
         <p className="font-mono text-xs uppercase tracking-widest text-accent-ink">

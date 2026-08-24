@@ -36,9 +36,6 @@ export default function FavoriteLines({
 
   return (
     <div className="mt-4 border-t border-border pt-3">
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
-        Favorite lines
-      </p>
       <div className="flex flex-col gap-2">
         {lines.map((l) => (
           <div key={l.id} className="rounded-control bg-paper px-3 py-2">
@@ -48,16 +45,13 @@ export default function FavoriteLines({
             </p>
           </div>
         ))}
-        {lines.length === 0 && (
-          <p className="text-sm text-ink-faint">No favorite lines shared yet.</p>
-        )}
       </div>
       <form onSubmit={handleSubmit} className="mt-2 flex gap-2">
         <input
           value={quote}
           onChange={(e) => setQuote(e.target.value)}
           placeholder="Share a line that stuck with you…"
-          className="flex-1 rounded-control border border-border bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="flex-1 rounded-control border border-border bg-paper px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
         <button
           type="submit"

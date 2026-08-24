@@ -82,7 +82,7 @@ export default function AddSectionForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Chapters 1–5"
-          className="flex-1 rounded-control border border-border bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="flex-1 rounded-control border border-border bg-paper px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
         <button
           type="submit"

@@ -202,6 +202,13 @@ create policy "members can cast their own vote"
   on want_to_read_votes for insert to authenticated with check (auth.uid() = user_id);
 create policy "members can remove their own vote"
   on want_to_read_votes for delete to authenticated using (auth.uid() = user_id);
+-- Needed for the upsert-on-user_id pattern that moves a vote to a different
+-- book: the conflict path is a real UPDATE under the hood, which RLS blocks
+-- without an explicit policy even though insert/delete are already covered.
+create policy "members can move their own vote"
+  on want_to_read_votes for update to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 -- Unlock rows are private to the user who unlocked the section — otherwise
 -- everyone's read progress would be inferable from the client.

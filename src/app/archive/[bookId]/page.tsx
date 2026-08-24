@@ -102,7 +102,7 @@ export default async function ArchiveBookPage({
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <div className="mx-auto max-w-5xl px-4 py-6">
       <Link href="/archive" className="text-sm text-accent-ink hover:underline">
         ← Previous Reads
       </Link>

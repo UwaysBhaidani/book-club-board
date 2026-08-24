@@ -41,7 +41,7 @@ export default function EditDisplayNameForm({
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+          className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
       </label>
       <button

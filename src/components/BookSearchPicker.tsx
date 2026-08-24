@@ -78,7 +78,7 @@ export default function BookSearchPicker({
           }
         }}
         placeholder="Search for a book by title or author…"
-        className="w-full rounded-control border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
+        className="w-full rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
       />
 
       {loading && <p className="mt-2 text-xs text-ink-faint">Searching…</p>}
@@ -95,7 +95,7 @@ export default function BookSearchPicker({
                   setQuery("");
                   setResults([]);
                 }}
-                className="flex w-full items-center gap-3 rounded-control border border-border bg-surface p-2 text-left hover:border-accent"
+                className="flex w-full items-center gap-3 rounded-control border border-border bg-paper p-2 text-left hover:border-accent"
               >
                 <div className="flex h-16 w-11 flex-none items-center justify-center overflow-hidden rounded bg-accent-soft">
                   <CoverThumb url={r.cover_url} />

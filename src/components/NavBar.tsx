@@ -24,7 +24,7 @@ export default function NavBar({ displayName }: { displayName: string | null }) 
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-paper/95 backdrop-blur">
-      <div className="relative mx-auto flex max-w-3xl items-center justify-center px-4 py-4">
+      <div className="relative mx-auto flex max-w-5xl items-center justify-center px-4 py-4">
         <button
           onClick={() => setOpen((o) => !o)}
           aria-label="Menu"
@@ -43,7 +43,7 @@ export default function NavBar({ displayName }: { displayName: string | null }) 
 
       {open && (
         <nav className="border-t border-border">
-          <div className="mx-auto flex max-w-3xl flex-col gap-3 px-4 py-4 text-sm">
+          <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 text-sm">
             {links.map((l) => (
               <Link
                 key={l.href}

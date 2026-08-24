@@ -54,6 +54,17 @@ body {
   font-family: var(--font-body);
 }
 
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--drift, 0px)) rotate(720deg);
+    opacity: 0.9;
+  }
+}
+
 /* iOS Safari auto-zooms in when focusing a field with a computed font-size
    under 16px — this keeps every input/select/textarea at a safe size on
    small screens regardless of the text-sm classes used elsewhere. */
@@ -62,5 +73,11 @@ body {
   select,
   textarea {
     font-size: 16px;
+  }
+
+  /* Narrows the gap with the 16px input text above, without going all the
+     way there — posted comments/questions stay text-sm (14px) on desktop. */
+  .discussion-text {
+    font-size: 15px;
   }
 }

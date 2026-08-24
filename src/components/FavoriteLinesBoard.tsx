@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import FavoriteLines from "./FavoriteLines";
+import PadlockIcon from "./PadlockIcon";
+import { withMinDuration } from "@/lib/timing";
 import type { FavoriteLine } from "@/lib/types";
 
 export default function FavoriteLinesBoard({
@@ -25,18 +27,24 @@ export default function FavoriteLinesBoard({
 
   async function unlock() {
     setPending(true);
-    await supabase.from("section_unlocks").insert({ section_id: sectionId, user_id: currentUserId });
+    await withMinDuration(
+      supabase.from("section_unlocks").insert({ section_id: sectionId, user_id: currentUserId }),
+      350
+    );
     setPending(false);
     router.refresh();
   }
 
   async function relock() {
     setPending(true);
-    await supabase
-      .from("section_unlocks")
-      .delete()
-      .eq("section_id", sectionId)
-      .eq("user_id", currentUserId);
+    await withMinDuration(
+      supabase
+        .from("section_unlocks")
+        .delete()
+        .eq("section_id", sectionId)
+        .eq("user_id", currentUserId),
+      350
+    );
     setPending(false);
     router.refresh();
   }
@@ -49,9 +57,13 @@ export default function FavoriteLinesBoard({
           <button
             onClick={unlock}
             disabled={pending}
-            className="flex-none rounded-pill bg-accent px-4 py-2 text-sm font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
+            aria-label="Unlock"
+            title="Unlock"
+            className={`flex flex-none appearance-none items-center justify-center rounded-full border-2 bg-accent p-2.5 text-accent-contrast hover:border-accent-ink active:border-accent-ink disabled:opacity-50 ${
+              pending ? "border-accent-ink" : "border-transparent"
+            }`}
           >
-            {pending ? "Unlocking…" : "Unlock"}
+            <PadlockIcon unlocked={pending} />
           </button>
         </div>
       </div>
@@ -65,9 +77,11 @@ export default function FavoriteLinesBoard({
         <button
           onClick={relock}
           disabled={pending}
-          className="flex-none text-xs text-ink-faint hover:text-accent-ink disabled:opacity-50"
+          aria-label="Hide section"
+          title="Hide section"
+          className="flex flex-none appearance-none items-center justify-center rounded-full p-2.5 text-ink-faint hover:bg-accent-soft hover:text-accent-ink disabled:opacity-50"
         >
-          Hide section
+          <PadlockIcon unlocked={!pending} />
         </button>
       </div>
       <FavoriteLines sectionId={sectionId} initialLines={initialLines} currentUserId={currentUserId} />
