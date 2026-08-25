@@ -37,6 +37,16 @@ export default async function PotentialReadPage({
     .single();
   if (!book) notFound();
 
+  let addedByName: string | null = null;
+  if (book.added_by) {
+    const { data: adder } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", book.added_by)
+      .maybeSingle();
+    addedByName = adder?.display_name ?? null;
+  }
+
   const { data: voteRows } = await supabase
     .from("want_to_read_votes")
     .select("user_id, profiles(display_name)")
@@ -75,6 +85,8 @@ export default async function PotentialReadPage({
       </Link>
 
       <BookHero title={book.title} author={book.author} coverUrl={book.cover_url}>
+        {addedByName && <p className="text-xs text-ink-faint">Added by {addedByName}</p>}
+
         {voterNames.length > 0 && (
           <div className="mt-1">
             <p className="text-sm text-ink-faint">Wants to read:</p>
