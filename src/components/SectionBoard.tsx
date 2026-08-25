@@ -12,15 +12,25 @@ function LockedSection({
   title,
   onUnlock,
   loading,
+  questionCount,
+  replyCount,
 }: {
   title: string;
   onUnlock: () => void;
   loading: boolean;
+  questionCount: number;
+  replyCount: number;
 }) {
   return (
     <div className="rounded-card border border-border bg-surface p-5">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="font-display text-lg text-ink">{title}</h3>
+        <div>
+          <h3 className="font-display text-lg text-ink">{title}</h3>
+          <p className="mt-0.5 text-xs text-ink-faint">
+            {questionCount} Discussion Point{questionCount === 1 ? "" : "s"} ·{" "}
+            {replyCount} Repl{replyCount === 1 ? "y" : "ies"}
+          </p>
+        </div>
         <button
           onClick={onUnlock}
           disabled={loading}
@@ -152,6 +162,8 @@ export default function SectionBoard({
   suggestedQuestions,
   currentUserId,
   showSuggestions = true,
+  questionCount = 0,
+  replyCount = 0,
 }: {
   sectionId: string;
   title: string;
@@ -162,6 +174,8 @@ export default function SectionBoard({
   suggestedQuestions: string[];
   currentUserId: string;
   showSuggestions?: boolean;
+  questionCount?: number;
+  replyCount?: number;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -200,7 +214,15 @@ export default function SectionBoard({
   }
 
   if (!unlocked) {
-    return <LockedSection title={title} onUnlock={unlock} loading={pending} />;
+    return (
+      <LockedSection
+        title={title}
+        onUnlock={unlock}
+        loading={pending}
+        questionCount={questionCount}
+        replyCount={replyCount}
+      />
+    );
   }
 
   return (

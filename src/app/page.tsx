@@ -33,6 +33,8 @@ export default async function HomePage() {
   let commentsByQuestion: Record<string, Comment[]> = {};
   let reactionsByComment: Record<string, CommentReaction[]> = {};
   let favoriteLinesBySection: Record<string, FavoriteLine[]> = {};
+  let questionCountBySection: Record<string, number> = {};
+  let replyCountBySection: Record<string, number> = {};
   let progressEntries: { userId: string; name: string; label: string }[] = [];
 
   if (currentBook && user) {
@@ -57,12 +59,35 @@ export default async function HomePage() {
     if (sections.length > 0) {
       const sectionIds = sections.map((s) => s.id);
 
-      const { data: unlockRows } = await supabase
-        .from("section_unlocks")
-        .select("section_id")
-        .eq("user_id", user.id)
-        .in("section_id", sectionIds);
+      const [{ data: unlockRows }, { data: allQuestionRows }] = await Promise.all([
+        supabase
+          .from("section_unlocks")
+          .select("section_id")
+          .eq("user_id", user.id)
+          .in("section_id", sectionIds),
+        supabase.from("discussion_questions").select("id, section_id").in("section_id", sectionIds),
+      ]);
       unlockedSectionIds = new Set((unlockRows ?? []).map((u) => u.section_id));
+
+      questionCountBySection = (allQuestionRows ?? []).reduce((acc, q) => {
+        acc[q.section_id] = (acc[q.section_id] ?? 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const sectionByQuestionId = new Map((allQuestionRows ?? []).map((q) => [q.id, q.section_id]));
+      const allQuestionIds = (allQuestionRows ?? []).map((q) => q.id);
+
+      if (allQuestionIds.length > 0) {
+        const { data: allCommentRows } = await supabase
+          .from("comments")
+          .select("id, question_id")
+          .in("question_id", allQuestionIds);
+        replyCountBySection = (allCommentRows ?? []).reduce((acc, c) => {
+          const sectionId = sectionByQuestionId.get(c.question_id);
+          if (sectionId) acc[sectionId] = (acc[sectionId] ?? 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+      }
 
       const unlockedIds = sectionIds.filter((id) => unlockedSectionIds.has(id));
 
@@ -173,6 +198,8 @@ export default async function HomePage() {
                   reactionsByComment={reactionsByComment}
                   suggestedQuestions={s.suggested_questions ?? []}
                   currentUserId={user.id}
+                  questionCount={questionCountBySection[s.id] ?? 0}
+                  replyCount={replyCountBySection[s.id] ?? 0}
                 />
               )
             )}
