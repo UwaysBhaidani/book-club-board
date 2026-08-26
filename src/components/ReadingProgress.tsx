@@ -180,10 +180,10 @@ export default function ReadingProgress({
                   avatarUrl={g.members[0].avatarUrl}
                   seed={g.members[0].userId}
                   size={22}
-                  className="border-2 border-surface"
+                  className="relative z-10 border-2 border-surface"
                 />
                 {g.members.length > 1 && (
-                  <span className="flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border-2 border-surface bg-paper text-[10px] text-ink-faint">
+                  <span className="relative z-0 flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border-2 border-surface bg-paper text-[10px] text-ink-faint">
                     +{g.members.length - 1}
                   </span>
                 )}
