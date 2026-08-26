@@ -135,8 +135,6 @@ export default async function PotentialReadPage({
           <div className="mt-3 flex w-full flex-col items-center gap-2 sm:items-start">
             <EditBookDetailsButton
               bookId={book.id}
-              title={book.title}
-              author={book.author}
               currentCoverUrl={book.cover_url}
               currentDescription={book.description}
               currentGenre={book.genre}

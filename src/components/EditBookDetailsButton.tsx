@@ -6,8 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function EditBookDetailsButton({
   bookId,
-  title,
-  author,
   currentCoverUrl,
   currentDescription,
   currentGenre,
@@ -15,8 +13,6 @@ export default function EditBookDetailsButton({
   currentPageCount,
 }: {
   bookId: string;
-  title: string;
-  author: string | null;
   currentCoverUrl: string | null;
   currentDescription: string | null;
   currentGenre: string | null;
@@ -31,7 +27,6 @@ export default function EditBookDetailsButton({
   const [genre, setGenre] = useState(currentGenre ?? "");
   const [discussionAppeal, setDiscussionAppeal] = useState(currentDiscussionAppeal ?? "");
   const [pageCount, setPageCount] = useState(currentPageCount ? String(currentPageCount) : "");
-  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,36 +38,6 @@ export default function EditBookDetailsButton({
     setDiscussionAppeal(currentDiscussionAppeal ?? "");
     setPageCount(currentPageCount ? String(currentPageCount) : "");
     setError(null);
-  }
-
-  async function generateWithClaude() {
-    setGenerating(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/generate-synopsis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          author,
-          rawDescription: description || null,
-          pageCount: pageCount ? Number(pageCount) : null,
-        }),
-      });
-      const body = await res.json();
-      if (!res.ok) {
-        setError(body?.error ?? "Couldn't generate a description.");
-        return;
-      }
-      if (body.synopsis) setDescription(body.synopsis);
-      if (body.genre) setGenre(body.genre);
-      if (body.discussion_appeal) setDiscussionAppeal(body.discussion_appeal);
-      if (!pageCount && body.page_count) setPageCount(String(body.page_count));
-    } catch {
-      setError("Couldn't generate a description.");
-    } finally {
-      setGenerating(false);
-    }
   }
 
   async function save() {
@@ -164,15 +129,6 @@ export default function EditBookDetailsButton({
           className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
       </label>
-
-      <button
-        type="button"
-        onClick={generateWithClaude}
-        disabled={generating}
-        className="self-start rounded-pill border border-border px-3 py-1.5 text-xs text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
-      >
-        {generating ? "Generating…" : "Generate new description"}
-      </button>
 
       <div className="flex gap-2">
         <button
