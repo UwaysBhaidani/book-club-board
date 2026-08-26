@@ -313,7 +313,7 @@ export default function SectionBoard({
                       </button>
                       <button
                         onClick={() => deleteQuestion(q.id)}
-                        className="text-xs text-ink-faint hover:text-red-400"
+                        className="text-xs text-ink-faint hover:text-red-300"
                       >
                         Delete
                       </button>
