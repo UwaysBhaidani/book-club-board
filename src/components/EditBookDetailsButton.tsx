@@ -121,7 +121,7 @@ export default function EditBookDetailsButton({
       </label>
 
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-xs text-ink-soft">
+        <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-ink-soft">
           Genre
           <input
             value={genre}
