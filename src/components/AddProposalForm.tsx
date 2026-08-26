@@ -17,11 +17,34 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
     if (!selected) return;
     setLoading(true);
     setError(null);
+
+    // Rewrite whatever description we found into a short, consistent,
+    // spoiler-free synopsis — raw Open Library/Google descriptions vary
+    // wildly in length, quality, and spoiler content.
+    let description = selected.description;
+    try {
+      const res = await fetch("/api/generate-synopsis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: selected.title,
+          author: selected.author,
+          rawDescription: selected.description,
+        }),
+      });
+      if (res.ok) {
+        const body = await res.json();
+        if (body.synopsis) description = body.synopsis;
+      }
+    } catch {
+      // Fall back to whatever raw description we already have.
+    }
+
     const { error } = await supabase.from("books").insert({
       title: selected.title,
       author: selected.author,
       cover_url: selected.cover_url,
-      description: selected.description,
+      description,
       page_count: selected.page_count,
       status: "want_to_read",
       added_by: currentUserId,

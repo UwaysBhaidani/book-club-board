@@ -29,7 +29,6 @@ function hashString(str: string): number {
 
 function DogFaceIcon({ seed, className }: { seed: number; className?: string }) {
   const color = DOG_COLORS[seed % DOG_COLORS.length];
-  const longEars = seed % 2 === 0;
 
   return (
     <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
@@ -37,17 +36,8 @@ function DogFaceIcon({ seed, className }: { seed: number; className?: string }) 
       {/* Ears are drawn first, with their base tucked well inside the head
           shape below, so the head paints over the seam and they read as
           attached rather than floating. */}
-      {longEars ? (
-        <>
-          <path d="M14 13 C 5 12, -2 19, 3 32 C 8 28, 14 19, 19 14 Z" fill={color} />
-          <path d="M26 13 C 35 12, 42 19, 37 32 C 32 28, 26 19, 21 14 Z" fill={color} />
-        </>
-      ) : (
-        <>
-          <path d="M13 12 C 6 11, 2 17, 6 26 C 10 23, 13 18, 17 13 Z" fill={color} />
-          <path d="M27 12 C 34 11, 38 17, 34 26 C 30 23, 27 18, 23 13 Z" fill={color} />
-        </>
-      )}
+      <path d="M13 12 C 6 11, 2 17, 6 26 C 10 23, 13 18, 17 13 Z" fill={color} />
+      <path d="M27 12 C 34 11, 38 17, 34 26 C 30 23, 27 18, 23 13 Z" fill={color} />
       <ellipse cx="20" cy="21" rx="14" ry="13" fill={color} />
       <ellipse cx="20" cy="27" rx="8" ry="6.5" fill="#ece0d1" />
       <circle cx="14.5" cy="19" r="2.3" fill="#1c1410" />
@@ -56,14 +46,14 @@ function DogFaceIcon({ seed, className }: { seed: number; className?: string }) 
       <circle cx="24.7" cy="18.2" r="0.7" fill="#f0e6dc" />
       <ellipse cx="20" cy="25.5" rx="2.6" ry="2" fill="#1c1410" />
       <path
-        d="M20 27.5 Q20 29 17.5 29"
+        d="M20 28 Q 18.5 30 16.5 27.8"
         stroke="#1c1410"
         strokeWidth="1"
         fill="none"
         strokeLinecap="round"
       />
       <path
-        d="M20 27.5 Q20 29 22.5 29"
+        d="M20 28 Q 21.5 30 23.5 27.8"
         stroke="#1c1410"
         strokeWidth="1"
         fill="none"
