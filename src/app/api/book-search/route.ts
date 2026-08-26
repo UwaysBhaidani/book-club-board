@@ -9,7 +9,7 @@ type OpenLibraryDoc = {
   number_of_pages_median?: number;
 };
 
-const RESULT_LIMIT = 3;
+const RESULT_LIMIT = 8;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

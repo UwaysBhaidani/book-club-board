@@ -36,6 +36,7 @@ export default function ReadingProgress({
   const [showOthers, setShowOthers] = useState(false);
   const [dragFrac, setDragFrac] = useState<number | null>(null);
   const [confetti, setConfetti] = useState<ReturnType<typeof makeConfetti> | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
 
@@ -66,21 +67,33 @@ export default function ReadingProgress({
 
   function commit(index: number) {
     const label = stages[index];
+    const previousEntry = mine;
     const wasFinished = mine?.label === "Finished";
+    setError(null);
     setEntries((prev) => [
       ...prev.filter((e) => e.userId !== currentUserId),
       { userId: currentUserId, name: currentUserName, label },
     ]);
-    void supabase
+    supabase
       .from("reading_progress")
       .upsert(
         { book_id: bookId, user_id: currentUserId, label, updated_at: new Date().toISOString() },
         { onConflict: "book_id,user_id" }
-      );
-    if (label === "Finished" && !wasFinished) {
-      setConfetti(makeConfetti(90));
-      setTimeout(() => setConfetti(null), 2600);
-    }
+      )
+      .then(({ error }) => {
+        if (error) {
+          setEntries((prev) => [
+            ...prev.filter((e) => e.userId !== currentUserId),
+            ...(previousEntry ? [previousEntry] : []),
+          ]);
+          setError("Couldn't save your progress — try again.");
+          return;
+        }
+        if (label === "Finished" && !wasFinished) {
+          setConfetti(makeConfetti(90));
+          setTimeout(() => setConfetti(null), 2600);
+        }
+      });
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -168,6 +181,8 @@ export default function ReadingProgress({
         </span>
         <span>FIN</span>
       </div>
+
+      {error && <p className="mt-2 text-xs text-accent-ink">{error}</p>}
 
       {others.length > 0 && (
         <div className="mt-3">
