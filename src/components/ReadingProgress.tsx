@@ -215,7 +215,7 @@ export default function ReadingProgress({
           }}
         />
         <div
-          className="pointer-events-none absolute top-[-3px] bottom-[-3px]"
+          className="pointer-events-none absolute top-[-5px] bottom-[-5px]"
           style={{
             left: `${displayFrac * 100}%`,
             transform: "translateX(-50%)",
@@ -224,14 +224,14 @@ export default function ReadingProgress({
           }}
         >
           <svg
-            width="14"
+            width="18"
             height="100%"
             viewBox="0 0 24 24"
             preserveAspectRatio="none"
             className="text-accent-ink"
           >
             <path
-              d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
+              d="M19 21l-7-5-7 5V3h14z"
               fill="currentColor"
               stroke="currentColor"
               strokeWidth="1"
