@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Avatar from "./Avatar";
 import type { Comment, CommentReaction, CommentReactionType } from "@/lib/types";
 
 function timeAgo(iso: string) {
@@ -161,7 +162,7 @@ export default function CommentThread({
     const { data, error } = await supabase
       .from("comments")
       .insert({ question_id: questionId, user_id: currentUserId, body: body.trim() })
-      .select("*, profiles!comments_user_id_fkey(display_name)")
+      .select("*, profiles!comments_user_id_fkey(display_name, avatar_url)")
       .single();
     setPosting(false);
     if (error || !data) {
@@ -218,7 +219,7 @@ export default function CommentThread({
         body: replyBody.trim(),
         parent_comment_id: parentId,
       })
-      .select("*, profiles!comments_user_id_fkey(display_name)")
+      .select("*, profiles!comments_user_id_fkey(display_name, avatar_url)")
       .single();
     setReplyPosting(false);
     if (error || !data) {
@@ -285,7 +286,8 @@ export default function CommentThread({
     return (
       <div key={c.id} className={isReply ? "ml-6 rounded-control bg-paper/60 px-3 py-2" : "rounded-control bg-paper px-3 py-2"}>
         <div className="flex items-baseline justify-between">
-          <span className="text-sm font-medium text-ink">
+          <span className="flex items-center gap-1.5 text-sm font-medium text-ink">
+            <Avatar avatarUrl={c.profiles?.avatar_url} seed={c.user_id} size={20} />
             {c.profiles?.display_name ?? "Member"}
           </span>
           <span className="text-xs text-ink-faint">

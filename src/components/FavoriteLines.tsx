@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Avatar from "./Avatar";
 import type { FavoriteLine } from "@/lib/types";
 
 export default function FavoriteLines({
@@ -25,7 +26,7 @@ export default function FavoriteLines({
     const { data, error } = await supabase
       .from("favorite_lines")
       .insert({ section_id: sectionId, user_id: currentUserId, quote: quote.trim() })
-      .select("*, profiles(display_name)")
+      .select("*, profiles(display_name, avatar_url)")
       .single();
     setPosting(false);
     if (!error && data) {
@@ -40,8 +41,9 @@ export default function FavoriteLines({
         {lines.map((l) => (
           <div key={l.id} className="rounded-control bg-paper px-3 py-2">
             <p className="text-sm italic text-ink-soft">&ldquo;{l.quote}&rdquo;</p>
-            <p className="mt-1 text-xs text-ink-faint">
-              — {l.profiles?.display_name ?? "Member"}
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-faint">
+              <Avatar avatarUrl={l.profiles?.avatar_url} seed={l.user_id} size={16} />
+              {l.profiles?.display_name ?? "Member"}
             </p>
           </div>
         ))}

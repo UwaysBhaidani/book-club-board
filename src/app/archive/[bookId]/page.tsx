@@ -26,7 +26,10 @@ export default async function ArchiveBookPage({
         ? supabase.from("profiles").select("is_admin").eq("id", user.id).single()
         : Promise.resolve({ data: null }),
       supabase.from("books").select("*").eq("id", bookId).single(),
-      supabase.from("profiles").select("id, display_name").order("display_name", { ascending: true }),
+      supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .order("display_name", { ascending: true }),
       supabase.from("book_ratings").select("user_id, rating").eq("book_id", bookId),
       supabase
         .from("chapter_sections")
@@ -42,6 +45,7 @@ export default async function ArchiveBookPage({
     userId: p.id,
     name: p.display_name,
     rating: ratingByUser.get(p.id) ?? null,
+    avatarUrl: p.avatar_url,
   }));
 
   const sectionIds = (sections ?? []).map((s) => s.id);
@@ -91,12 +95,12 @@ export default async function ArchiveBookPage({
     const [{ data: questionRows }, { data: lineRows }] = await Promise.all([
       supabase
         .from("discussion_questions")
-        .select("*, profiles(display_name)")
+        .select("*, profiles(display_name, avatar_url)")
         .in("section_id", unlockedIds)
         .order("sort_order", { ascending: true }),
       supabase
         .from("favorite_lines")
-        .select("*, profiles(display_name)")
+        .select("*, profiles(display_name, avatar_url)")
         .in("section_id", unlockedIds)
         .order("created_at", { ascending: true }),
     ]);
@@ -115,7 +119,7 @@ export default async function ArchiveBookPage({
     if (questionIds.length > 0) {
       const { data: commentRows } = await supabase
         .from("comments")
-        .select("*, profiles!comments_user_id_fkey(display_name)")
+        .select("*, profiles!comments_user_id_fkey(display_name, avatar_url)")
         .in("question_id", questionIds)
         .order("created_at", { ascending: true });
       commentsByQuestion = (commentRows ?? []).reduce((acc, c) => {

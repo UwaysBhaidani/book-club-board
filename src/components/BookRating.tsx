@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatRating } from "@/lib/format";
+import Avatar from "./Avatar";
 
-type Entry = { userId: string; name: string; rating: number | null };
+type Entry = { userId: string; name: string; rating: number | null; avatarUrl: string | null };
 
 function Star({ fill }: { fill: number }) {
   return (
@@ -84,7 +85,10 @@ export default function BookRating({
       <ul className="mt-3 flex flex-col gap-1 text-sm">
         {entries.map((e) => (
           <li key={e.userId} className="flex items-center justify-between gap-2">
-            <span className="text-ink-soft">{e.userId === currentUserId ? "You" : e.name}</span>
+            <span className="flex items-center gap-1.5 text-ink-soft">
+              <Avatar avatarUrl={e.avatarUrl} seed={e.userId} size={18} />
+              {e.userId === currentUserId ? "You" : e.name}
+            </span>
             <span className="text-ink-faint">
               {e.rating != null ? `${formatRating(e.rating)} / 5` : "No Rating"}
             </span>

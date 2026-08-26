@@ -5,8 +5,12 @@ import BookHero from "@/components/BookHero";
 import PotentialReadActions from "@/components/PotentialReadActions";
 import EditCoverButton from "@/components/EditCoverButton";
 import PromoteToCurrentButton from "@/components/PromoteToCurrentButton";
+import Avatar from "@/components/Avatar";
 
-type VoteRow = { user_id: string; profiles: { display_name: string } | null };
+type VoteRow = {
+  user_id: string;
+  profiles: { display_name: string; avatar_url: string | null } | null;
+};
 
 export default async function PotentialReadPage({
   params,
@@ -49,11 +53,13 @@ export default async function PotentialReadPage({
 
   const { data: voteRows } = await supabase
     .from("want_to_read_votes")
-    .select("user_id, profiles(display_name)")
+    .select("user_id, profiles(display_name, avatar_url)")
     .eq("book_id", bookId);
-  const voterNames = ((voteRows ?? []) as unknown as VoteRow[]).map(
-    (v) => v.profiles?.display_name ?? "Member"
-  );
+  const voters = ((voteRows ?? []) as unknown as VoteRow[]).map((v) => ({
+    userId: v.user_id,
+    name: v.profiles?.display_name ?? "Member",
+    avatarUrl: v.profiles?.avatar_url ?? null,
+  }));
 
   let isVotedByMe = false;
   if (user) {
@@ -85,15 +91,18 @@ export default async function PotentialReadPage({
       </Link>
 
       <BookHero title={book.title} author={book.author} coverUrl={book.cover_url}>
+        {book.page_count && <p className="text-sm text-ink-soft">{book.page_count} pages</p>}
+
         {addedByName && <p className="text-xs text-ink-faint">Added by {addedByName}</p>}
 
-        {voterNames.length > 0 && (
+        {voters.length > 0 && (
           <div className="mt-1">
             <p className="text-sm text-ink-faint">Wants to read:</p>
             <ul className="mt-1 flex flex-col items-center gap-0.5 sm:items-start">
-              {voterNames.map((name, i) => (
-                <li key={i} className="text-sm text-ink-soft">
-                  {name}
+              {voters.map((v) => (
+                <li key={v.userId} className="flex items-center gap-1.5 text-sm text-ink-soft">
+                  <Avatar avatarUrl={v.avatarUrl} seed={v.userId} size={16} />
+                  {v.name}
                 </li>
               ))}
             </ul>
@@ -106,26 +115,34 @@ export default async function PotentialReadPage({
               bookId={book.id}
               bookTitle={book.title}
               isVotedByMe={isVotedByMe}
-              voterCount={voterNames.length}
+              voterCount={voters.length}
               currentUserId={user.id}
               canRemove={canRemove}
             />
           </div>
         )}
 
-        {isAdmin && (
+        {(isAdmin || canRemove) && (
           <div className="mt-3 flex flex-col items-center gap-2 sm:items-start">
             <EditCoverButton bookId={book.id} currentUrl={book.cover_url} />
-            <PromoteToCurrentButton
-              bookId={book.id}
-              bookTitle={book.title}
-              author={book.author}
-              pageCount={book.page_count}
-              hasCurrentBook={hasCurrentBook}
-            />
+            {isAdmin && (
+              <PromoteToCurrentButton
+                bookId={book.id}
+                bookTitle={book.title}
+                author={book.author}
+                pageCount={book.page_count}
+                hasCurrentBook={hasCurrentBook}
+              />
+            )}
           </div>
         )}
       </BookHero>
+
+      {book.description && (
+        <div className="mt-2 border-t border-border pt-4">
+          <p className="text-sm leading-relaxed text-ink-soft">{book.description}</p>
+        </div>
+      )}
     </div>
   );
 }

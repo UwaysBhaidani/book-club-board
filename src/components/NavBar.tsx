@@ -3,8 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Avatar from "./Avatar";
 
-export default function NavBar({ displayName }: { displayName: string | null }) {
+export default function NavBar({
+  displayName,
+  userId,
+  avatarUrl,
+}: {
+  displayName: string | null;
+  userId: string | null;
+  avatarUrl: string | null;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -71,7 +80,12 @@ export default function NavBar({ displayName }: { displayName: string | null }) 
               </Link>
             ))}
             <div className="mt-1 flex items-center justify-between border-t border-border pt-3">
-              {displayName && <span className="text-ink-soft">{displayName}</span>}
+              {displayName && userId && (
+                <span className="flex items-center gap-2 text-ink-soft">
+                  <Avatar avatarUrl={avatarUrl} seed={userId} size={22} />
+                  {displayName}
+                </span>
+              )}
               <Link
                 href="/profile"
                 className={

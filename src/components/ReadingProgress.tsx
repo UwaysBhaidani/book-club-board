@@ -2,8 +2,9 @@
 
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Avatar from "./Avatar";
 
-type Entry = { userId: string; name: string; label: string };
+type Entry = { userId: string; name: string; label: string; avatarUrl: string | null };
 
 const CONFETTI_COLORS = ["#1c3f66", "#aedaf3", "#f3b6c9", "#e2a37a", "#f0e6dc"];
 
@@ -23,12 +24,14 @@ export default function ReadingProgress({
   totalChapters,
   currentUserId,
   currentUserName,
+  currentUserAvatarUrl,
   initialProgress,
 }: {
   bookId: string;
   totalChapters: number | null;
   currentUserId: string;
   currentUserName: string;
+  currentUserAvatarUrl: string | null;
   initialProgress: Entry[];
 }) {
   const [supabase] = useState(() => createClient());
@@ -59,6 +62,11 @@ export default function ReadingProgress({
   const displayFrac = dragFrac ?? committedFrac;
   const displayIndex = Math.round(displayFrac * (total - 1));
 
+  function fracForLabel(label: string) {
+    const index = Math.max(0, stages.indexOf(label));
+    return total > 1 ? index / (total - 1) : 0;
+  }
+
   function fracFromClientX(clientX: number) {
     const rect = trackRef.current?.getBoundingClientRect();
     if (!rect || rect.width === 0) return committedFrac;
@@ -72,7 +80,7 @@ export default function ReadingProgress({
     setError(null);
     setEntries((prev) => [
       ...prev.filter((e) => e.userId !== currentUserId),
-      { userId: currentUserId, name: currentUserName, label },
+      { userId: currentUserId, name: currentUserName, label, avatarUrl: currentUserAvatarUrl },
     ]);
     supabase
       .from("reading_progress")
@@ -143,6 +151,26 @@ export default function ReadingProgress({
         </p>
       </div>
 
+      {entries.length > 0 && (
+        <div className="relative mb-1 h-6">
+          {entries.map((e) => (
+            <div
+              key={e.userId}
+              className="absolute top-0"
+              style={{ left: `${fracForLabel(e.label) * 100}%`, transform: "translateX(-50%)" }}
+              title={`${e.userId === currentUserId ? "You" : e.name} — ${e.label}`}
+            >
+              <Avatar
+                avatarUrl={e.avatarUrl}
+                seed={e.userId}
+                size={22}
+                className="border-2 border-surface"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
       <div
         ref={trackRef}
         onPointerDown={onPointerDown}
@@ -196,7 +224,10 @@ export default function ReadingProgress({
             <ul className="mt-2 flex flex-col gap-1 text-sm">
               {others.map((e) => (
                 <li key={e.userId} className="flex items-center justify-between gap-2">
-                  <span className="text-ink-soft">{e.name}</span>
+                  <span className="flex items-center gap-1.5 text-ink-soft">
+                    <Avatar avatarUrl={e.avatarUrl} seed={e.userId} size={18} />
+                    {e.name}
+                  </span>
                   <span className="text-ink-faint">{e.label}</span>
                 </li>
               ))}

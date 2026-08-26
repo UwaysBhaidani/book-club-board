@@ -21,6 +21,7 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
       title: selected.title,
       author: selected.author,
       cover_url: selected.cover_url,
+      description: selected.description,
       page_count: selected.page_count,
       status: "want_to_read",
       added_by: currentUserId,

@@ -15,13 +15,22 @@ type GoogleVolume = {
     authors?: string[];
     publishedDate?: string;
     pageCount?: number;
+    description?: string;
     imageLinks?: { thumbnail?: string; smallThumbnail?: string };
   };
 };
 
+function cleanDescription(raw: string) {
+  return raw
+    .replace(/<[^>]+>/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .trim();
+}
+
 type SourceResult = { results: BookSearchResult[]; failed: boolean };
 
-const RESULT_LIMIT = 8;
+const RESULT_LIMIT = 5;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -86,6 +95,7 @@ async function searchGoogleBooks(q: string): Promise<SourceResult> {
           cover_url: thumbnail ? thumbnail.replace(/^http:/, "https:") : null,
           page_count: info.pageCount ?? null,
           published_year: info.publishedDate ? info.publishedDate.slice(0, 4) : null,
+          description: info.description ? cleanDescription(info.description) : null,
         };
       });
     return { results, failed: false };
@@ -112,6 +122,7 @@ async function searchOpenLibrary(q: string): Promise<SourceResult> {
       cover_url: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null,
       page_count: doc.number_of_pages_median ?? null,
       published_year: doc.first_publish_year ? String(doc.first_publish_year) : null,
+      description: null,
     }));
     return { results, failed: false };
   } catch {

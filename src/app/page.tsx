@@ -14,7 +14,7 @@ export default async function HomePage() {
 
   const [profileResult, { data: currentBook }] = await Promise.all([
     user
-      ? supabase.from("profiles").select("is_admin, display_name").eq("id", user.id).single()
+      ? supabase.from("profiles").select("is_admin, display_name, avatar_url").eq("id", user.id).single()
       : Promise.resolve({ data: null }),
     supabase
       .from("books")
@@ -26,6 +26,7 @@ export default async function HomePage() {
   ]);
   const isAdmin = profileResult.data?.is_admin ?? false;
   const currentUserName = profileResult.data?.display_name ?? "You";
+  const currentUserAvatarUrl = profileResult.data?.avatar_url ?? null;
 
   let sections: ChapterSection[] = [];
   let unlockedSectionIds = new Set<string>();
@@ -35,7 +36,7 @@ export default async function HomePage() {
   let favoriteLinesBySection: Record<string, FavoriteLine[]> = {};
   let questionCountBySection: Record<string, number> = {};
   let replyCountBySection: Record<string, number> = {};
-  let progressEntries: { userId: string; name: string; label: string }[] = [];
+  let progressEntries: { userId: string; name: string; label: string; avatarUrl: string | null }[] = [];
 
   if (currentBook && user) {
     const [{ data: sectionRows }, { data: allProfiles }, { data: progressRows }] = await Promise.all([
@@ -44,7 +45,10 @@ export default async function HomePage() {
         .select("*")
         .eq("book_id", currentBook.id)
         .order("sort_order", { ascending: true }),
-      supabase.from("profiles").select("id, display_name").order("display_name", { ascending: true }),
+      supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .order("display_name", { ascending: true }),
       supabase.from("reading_progress").select("user_id, label").eq("book_id", currentBook.id),
     ]);
     sections = sectionRows ?? [];
@@ -54,6 +58,7 @@ export default async function HomePage() {
       userId: p.id,
       name: p.display_name,
       label: labelByUser.get(p.id) ?? "Not started",
+      avatarUrl: p.avatar_url,
     }));
 
     if (sections.length > 0) {
@@ -95,12 +100,12 @@ export default async function HomePage() {
         const [{ data: questionRows }, { data: lineRows }] = await Promise.all([
           supabase
             .from("discussion_questions")
-            .select("*, profiles(display_name)")
+            .select("*, profiles(display_name, avatar_url)")
             .in("section_id", unlockedIds)
             .order("sort_order", { ascending: true }),
           supabase
             .from("favorite_lines")
-            .select("*, profiles(display_name)")
+            .select("*, profiles(display_name, avatar_url)")
             .in("section_id", unlockedIds)
             .order("created_at", { ascending: true }),
         ]);
@@ -120,7 +125,7 @@ export default async function HomePage() {
         if (questionIds.length > 0) {
           const { data: commentRows } = await supabase
             .from("comments")
-            .select("*, profiles!comments_user_id_fkey(display_name)")
+            .select("*, profiles!comments_user_id_fkey(display_name, avatar_url)")
             .in("question_id", questionIds)
             .order("created_at", { ascending: true });
 
@@ -172,6 +177,7 @@ export default async function HomePage() {
               totalChapters={currentBook.total_chapters}
               currentUserId={user.id}
               currentUserName={currentUserName}
+              currentUserAvatarUrl={currentUserAvatarUrl}
               initialProgress={progressEntries}
             />
           </div>

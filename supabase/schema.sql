@@ -6,6 +6,7 @@ create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null,
   is_admin boolean not null default false,
+  avatar_url text,
   created_at timestamptz not null default now()
 );
 
@@ -165,6 +166,10 @@ create policy "admins can delete books"
 create policy "proposers can remove their own want-to-read book"
   on books for delete to authenticated
   using (status = 'want_to_read' and added_by = auth.uid());
+create policy "proposers can update their own want-to-read book"
+  on books for update to authenticated
+  using (status = 'want_to_read' and added_by = auth.uid())
+  with check (status = 'want_to_read' and added_by = auth.uid());
 
 create policy "sections are viewable by everyone signed in"
   on chapter_sections for select to authenticated using (true);
@@ -243,6 +248,27 @@ create policy "members can change their reaction"
   on comment_reactions for update to authenticated using (auth.uid() = user_id);
 create policy "members can remove their reaction"
   on comment_reactions for delete to authenticated using (auth.uid() = user_id);
+
+-- Profile avatars: a public bucket (images only, world-readable — same
+-- exposure as a book cover) where each member can only write inside their
+-- own uid-prefixed folder.
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+create policy "avatar images are publicly accessible"
+  on storage.objects for select
+  using (bucket_id = 'avatars');
+create policy "users can upload their own avatar"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "users can update their own avatar"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "users can delete their own avatar"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
 
 create or replace function public.handle_new_user()
 returns trigger as $$

@@ -2,6 +2,7 @@ export type Profile = {
   id: string;
   display_name: string;
   is_admin: boolean;
+  avatar_url: string | null;
   created_at: string;
 };
 
@@ -11,6 +12,7 @@ export type Book = {
   author: string | null;
   status: "current" | "previous" | "want_to_read";
   cover_url: string | null;
+  description: string | null;
   page_count: number | null;
   total_chapters: number | null;
   notes: string | null;
@@ -103,4 +105,5 @@ export type BookSearchResult = {
   cover_url: string | null;
   page_count: number | null;
   published_year: string | null;
+  description: string | null;
 };
