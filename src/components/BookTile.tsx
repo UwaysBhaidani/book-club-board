@@ -24,7 +24,7 @@ export default function BookTile({
       <div>
         <p className="truncate font-display text-sm text-ink">{title}</p>
         {author && <p className="truncate text-xs text-ink-soft">{author}</p>}
-        {genre && <p className="truncate text-xs text-accent-ink">{genre}</p>}
+        {genre && <p className="truncate text-xs text-ink-faint">{genre}</p>}
         {meta && <p className="mt-0.5 text-xs text-ink-faint">{meta}</p>}
       </div>
     </Link>
