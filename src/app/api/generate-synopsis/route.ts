@@ -37,21 +37,20 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 400,
+        max_tokens: 500,
         messages: [
           {
             role: "user",
-            content: `Write a short synopsis of the book "${title}"${author ? ` by ${author}` : ""} for a book club's proposed-reads list.
+            content: `Write proposed-reads listing copy for the book "${title}"${author ? ` by ${author}` : ""} for a book club.
 
-Requirements for the synopsis:
-- 2-3 sentences, roughly 40-60 words.
-- Spoiler-free: no plot twists, no ending, no character deaths.
-- Engaging back-cover tone, not a dry summary.
-- Plain text only, no markdown formatting, no quotation marks around it.
-${rawDescription ? `\nHere is a rough existing description you can use as reference (clean it up, don't just copy it verbatim):\n${rawDescription}` : ""}
+Requirements:
+- "synopsis": 2-3 sentences, roughly 40-60 words. Spoiler-free (no plot twists, no ending, no character deaths). Engaging back-cover tone, not a dry summary. Plain text, no markdown, no surrounding quotation marks.
+- "genre": a short slash-separated genre label, e.g. "Literary Fiction / Psychological Thriller" — 1-3 genres, no more.
+- "discussion_appeal": 1-2 sentences on why this book makes for good book club discussion — what themes, moral questions, or debates it tends to spark. Plain text, no markdown, no surrounding quotation marks.
+${rawDescription ? `\nHere is a rough existing description you can use as reference for the synopsis (clean it up, don't just copy it verbatim):\n${rawDescription}` : ""}
 ${needsPageCount ? `\nAlso estimate the page count of a typical print edition of this book (a single integer, your best approximate knowledge — it's fine to be approximate since editions vary).` : ""}
 
-Respond with ONLY a JSON object of the form ${needsPageCount ? `{"synopsis": "...", "page_count": <integer or null>}` : `{"synopsis": "..."}`}, nothing else.`,
+Respond with ONLY a JSON object of the form {"synopsis": "...", "genre": "...", "discussion_appeal": "..."${needsPageCount ? `, "page_count": <integer or null>` : ""}}, nothing else.`,
           },
         ],
       }),
@@ -70,10 +69,18 @@ Respond with ONLY a JSON object of the form ${needsPageCount ? `{"synopsis": "..
     const synopsis = typeof parsed.synopsis === "string" ? parsed.synopsis.trim() : "";
     if (!synopsis) throw new Error("Empty AI response");
 
+    const genre = typeof parsed.genre === "string" ? parsed.genre.trim() : null;
+    const discussionAppeal =
+      typeof parsed.discussion_appeal === "string" ? parsed.discussion_appeal.trim() : null;
     const generatedPageCount =
       needsPageCount && typeof parsed.page_count === "number" ? parsed.page_count : null;
 
-    return NextResponse.json({ synopsis, page_count: generatedPageCount });
+    return NextResponse.json({
+      synopsis,
+      genre,
+      discussion_appeal: discussionAppeal,
+      page_count: generatedPageCount,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "AI generation failed" },

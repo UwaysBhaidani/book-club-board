@@ -10,6 +10,8 @@ export default function EditBookDetailsButton({
   author,
   currentCoverUrl,
   currentDescription,
+  currentGenre,
+  currentDiscussionAppeal,
   currentPageCount,
 }: {
   bookId: string;
@@ -17,6 +19,8 @@ export default function EditBookDetailsButton({
   author: string | null;
   currentCoverUrl: string | null;
   currentDescription: string | null;
+  currentGenre: string | null;
+  currentDiscussionAppeal: string | null;
   currentPageCount: number | null;
 }) {
   const [supabase] = useState(() => createClient());
@@ -24,6 +28,8 @@ export default function EditBookDetailsButton({
   const [editing, setEditing] = useState(false);
   const [coverUrl, setCoverUrl] = useState(currentCoverUrl ?? "");
   const [description, setDescription] = useState(currentDescription ?? "");
+  const [genre, setGenre] = useState(currentGenre ?? "");
+  const [discussionAppeal, setDiscussionAppeal] = useState(currentDiscussionAppeal ?? "");
   const [pageCount, setPageCount] = useState(currentPageCount ? String(currentPageCount) : "");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -33,6 +39,8 @@ export default function EditBookDetailsButton({
     setEditing(false);
     setCoverUrl(currentCoverUrl ?? "");
     setDescription(currentDescription ?? "");
+    setGenre(currentGenre ?? "");
+    setDiscussionAppeal(currentDiscussionAppeal ?? "");
     setPageCount(currentPageCount ? String(currentPageCount) : "");
     setError(null);
   }
@@ -57,6 +65,8 @@ export default function EditBookDetailsButton({
         return;
       }
       if (body.synopsis) setDescription(body.synopsis);
+      if (body.genre) setGenre(body.genre);
+      if (body.discussion_appeal) setDiscussionAppeal(body.discussion_appeal);
       if (!pageCount && body.page_count) setPageCount(String(body.page_count));
     } catch {
       setError("Couldn't generate a description.");
@@ -73,6 +83,8 @@ export default function EditBookDetailsButton({
       .update({
         cover_url: coverUrl.trim() || null,
         description: description.trim() || null,
+        genre: genre.trim() || null,
+        discussion_appeal: discussionAppeal.trim() || null,
         page_count: pageCount ? Number(pageCount) : null,
       })
       .eq("id", bookId);
@@ -108,17 +120,28 @@ export default function EditBookDetailsButton({
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-xs text-ink-soft">
-        Page count
-        <input
-          type="number"
-          min={1}
-          value={pageCount}
-          onChange={(e) => setPageCount(e.target.value)}
-          placeholder="e.g. 320"
-          className="w-24 rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
-        />
-      </label>
+      <div className="flex gap-3">
+        <label className="flex flex-1 flex-col gap-1 text-xs text-ink-soft">
+          Genre
+          <input
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            placeholder="e.g. Literary Fiction / Mystery"
+            className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-ink-soft">
+          Page count
+          <input
+            type="number"
+            min={1}
+            value={pageCount}
+            onChange={(e) => setPageCount(e.target.value)}
+            placeholder="e.g. 320"
+            className="w-24 rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+          />
+        </label>
+      </div>
 
       <label className="flex flex-col gap-1 text-xs text-ink-soft">
         Description
@@ -130,13 +153,25 @@ export default function EditBookDetailsButton({
           className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
       </label>
+
+      <label className="flex flex-col gap-1 text-xs text-ink-soft">
+        Discussion appeal
+        <textarea
+          value={discussionAppeal}
+          onChange={(e) => setDiscussionAppeal(e.target.value)}
+          rows={3}
+          placeholder="Why this makes for good book club discussion…"
+          className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+        />
+      </label>
+
       <button
         type="button"
         onClick={generateWithClaude}
         disabled={generating}
         className="self-start rounded-pill border border-border px-3 py-1.5 text-xs text-ink-soft hover:border-accent hover:text-accent-ink disabled:opacity-50"
       >
-        {generating ? "Generating…" : "Generate with Claude"}
+        {generating ? "Generating…" : "Generate new description"}
       </button>
 
       <div className="flex gap-2">

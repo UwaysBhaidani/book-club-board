@@ -21,9 +21,12 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
     // Rewrite whatever description we found into a short, consistent,
     // spoiler-free synopsis — raw Open Library/Google descriptions vary
     // wildly in length, quality, and spoiler content. Also fills in an
-    // approximate page count when neither source had one.
+    // approximate page count when neither source had one, plus genre and
+    // a discussion-appeal blurb, which no search provider gives us.
     let description = selected.description;
     let pageCount = selected.page_count;
+    let genre: string | null = null;
+    let discussionAppeal: string | null = null;
     try {
       const res = await fetch("/api/generate-synopsis", {
         method: "POST",
@@ -39,6 +42,8 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
         const body = await res.json();
         if (body.synopsis) description = body.synopsis;
         if (!pageCount && body.page_count) pageCount = body.page_count;
+        genre = body.genre ?? null;
+        discussionAppeal = body.discussion_appeal ?? null;
       }
     } catch {
       // Fall back to whatever raw description/page count we already have.
@@ -49,6 +54,8 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
       author: selected.author,
       cover_url: selected.cover_url,
       description,
+      genre,
+      discussion_appeal: discussionAppeal,
       page_count: pageCount,
       status: "want_to_read",
       added_by: currentUserId,

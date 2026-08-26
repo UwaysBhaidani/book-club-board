@@ -91,6 +91,7 @@ export default async function PotentialReadPage({
       </Link>
 
       <BookHero title={book.title} author={book.author} coverUrl={book.cover_url}>
+        {book.genre && <p className="text-sm text-accent-ink">{book.genre}</p>}
         {book.page_count && <p className="text-sm text-ink-soft">{book.page_count} pages</p>}
 
         {addedByName && <p className="text-xs text-ink-faint">Added by {addedByName}</p>}
@@ -130,6 +131,8 @@ export default async function PotentialReadPage({
               author={book.author}
               currentCoverUrl={book.cover_url}
               currentDescription={book.description}
+              currentGenre={book.genre}
+              currentDiscussionAppeal={book.discussion_appeal}
               currentPageCount={book.page_count}
             />
             {isAdmin && (
@@ -148,6 +151,15 @@ export default async function PotentialReadPage({
       {book.description && (
         <div className="mt-2 border-t border-border pt-4">
           <p className="text-sm leading-relaxed text-ink-soft">{book.description}</p>
+        </div>
+      )}
+
+      {book.discussion_appeal && (
+        <div className="mt-4">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-faint">
+            Discussion Appeal
+          </p>
+          <p className="text-sm leading-relaxed text-ink-soft">{book.discussion_appeal}</p>
         </div>
       )}
     </div>

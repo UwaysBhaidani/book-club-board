@@ -18,6 +18,8 @@ create table if not exists books (
   status text not null check (status in ('current', 'previous', 'want_to_read')),
   cover_url text,
   description text,
+  genre text,
+  discussion_appeal text,
   page_count int,
   total_chapters int,
   rating numeric(2,1),
