@@ -138,7 +138,6 @@ export default async function PotentialReadPage({
               currentCoverUrl={book.cover_url}
               currentDescription={book.description}
               currentGenre={book.genre}
-              currentDiscussionAppeal={book.discussion_appeal}
               currentPageCount={book.page_count}
             />
             {isAdmin && (
@@ -160,15 +159,6 @@ export default async function PotentialReadPage({
             Summary
           </p>
           <p className="text-sm leading-relaxed text-ink-soft">{book.description}</p>
-        </div>
-      )}
-
-      {book.discussion_appeal && (
-        <div className="mt-4">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-faint">
-            Discussion Appeal
-          </p>
-          <p className="text-sm leading-relaxed text-ink-soft">{book.discussion_appeal}</p>
         </div>
       )}
     </div>

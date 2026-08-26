@@ -9,14 +9,12 @@ export default function EditBookDetailsButton({
   currentCoverUrl,
   currentDescription,
   currentGenre,
-  currentDiscussionAppeal,
   currentPageCount,
 }: {
   bookId: string;
   currentCoverUrl: string | null;
   currentDescription: string | null;
   currentGenre: string | null;
-  currentDiscussionAppeal: string | null;
   currentPageCount: number | null;
 }) {
   const [supabase] = useState(() => createClient());
@@ -25,7 +23,6 @@ export default function EditBookDetailsButton({
   const [coverUrl, setCoverUrl] = useState(currentCoverUrl ?? "");
   const [description, setDescription] = useState(currentDescription ?? "");
   const [genre, setGenre] = useState(currentGenre ?? "");
-  const [discussionAppeal, setDiscussionAppeal] = useState(currentDiscussionAppeal ?? "");
   const [pageCount, setPageCount] = useState(currentPageCount ? String(currentPageCount) : "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +32,6 @@ export default function EditBookDetailsButton({
     setCoverUrl(currentCoverUrl ?? "");
     setDescription(currentDescription ?? "");
     setGenre(currentGenre ?? "");
-    setDiscussionAppeal(currentDiscussionAppeal ?? "");
     setPageCount(currentPageCount ? String(currentPageCount) : "");
     setError(null);
   }
@@ -49,7 +45,6 @@ export default function EditBookDetailsButton({
         cover_url: coverUrl.trim() || null,
         description: description.trim() || null,
         genre: genre.trim() || null,
-        discussion_appeal: discussionAppeal.trim() || null,
         page_count: pageCount ? Number(pageCount) : null,
       })
       .eq("id", bookId);
@@ -115,17 +110,6 @@ export default function EditBookDetailsButton({
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           placeholder="A short synopsis…"
-          className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-xs text-ink-soft">
-        Discussion appeal
-        <textarea
-          value={discussionAppeal}
-          onChange={(e) => setDiscussionAppeal(e.target.value)}
-          rows={3}
-          placeholder="Why this makes for good book club discussion…"
           className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
         />
       </label>

@@ -14,7 +14,6 @@ export type Book = {
   cover_url: string | null;
   description: string | null;
   genre: string | null;
-  discussion_appeal: string | null;
   page_count: number | null;
   total_chapters: number | null;
   notes: string | null;

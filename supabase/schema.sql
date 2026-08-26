@@ -23,7 +23,6 @@ create table if not exists books (
   cover_url text,
   description text,
   genre text,
-  discussion_appeal text,
   page_count int,
   total_chapters int,
   rating numeric(2,1),
