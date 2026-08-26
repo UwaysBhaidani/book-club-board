@@ -52,7 +52,6 @@ export default async function WantToReadPage() {
               coverUrl={b.cover_url}
               title={b.title}
               author={b.author}
-              genre={b.genre}
               meta={`${count} want${count === 1 ? "s" : ""} to read`}
             />
           );
