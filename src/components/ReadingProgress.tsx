@@ -152,11 +152,11 @@ export default function ReadingProgress({
       </div>
 
       {entries.length > 0 && (
-        <div className="relative mb-2 h-12">
+        <div className="relative mb-1 h-6">
           {entries.map((e) => (
             <div
               key={e.userId}
-              className="absolute top-0 flex flex-col items-center"
+              className="absolute top-0"
               style={{ left: `${fracForLabel(e.label) * 100}%`, transform: "translateX(-50%)" }}
               title={`${e.userId === currentUserId ? "You" : e.name} — ${e.label}`}
             >
@@ -166,9 +166,6 @@ export default function ReadingProgress({
                 size={22}
                 className="border-2 border-surface"
               />
-              <span className="mt-0.5 whitespace-nowrap text-xs text-ink-faint">
-                {e.userId === currentUserId ? "You" : e.name}
-              </span>
             </div>
           ))}
         </div>
