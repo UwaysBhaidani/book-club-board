@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 Requirements:
 - "synopsis": 2-3 sentences, roughly 40-60 words. Spoiler-free (no plot twists, no ending, no character deaths). Engaging back-cover tone, not a dry summary. Plain text, no markdown, no surrounding quotation marks.
 - "genre": a short slash-separated genre label, e.g. "Literary Fiction / Psychological Thriller" — 1-3 genres, no more.
-- "discussion_appeal": ONE short sentence (under 20 words) that simply signals this book is rich for group discussion — e.g. that it's morally complicated, divisive, or leaves a lot to unpack — WITHOUT naming the specific themes, questions, or debates it raises. The club should discover those themselves; don't hand them the discussion topics. Spoiler-free. Plain text, no markdown, no surrounding quotation marks.
+- "discussion_appeal": 1-2 sentences on why this book makes for good book club discussion — what themes, moral questions, or debates it tends to spark. Spoiler-free, same as the synopsis: describe themes and the kind of questions it raises without naming specific plot twists, character deaths, or how the story resolves. Plain text, no markdown, no surrounding quotation marks.
 ${rawDescription ? `\nHere is a rough existing description you can use as reference for the synopsis (clean it up, don't just copy it verbatim):\n${rawDescription}` : ""}
 ${needsPageCount ? `\nAlso estimate the page count of a typical print edition of this book (a single integer, your best approximate knowledge — it's fine to be approximate since editions vary).` : ""}
 
