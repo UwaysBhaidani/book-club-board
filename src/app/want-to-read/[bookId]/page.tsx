@@ -156,6 +156,9 @@ export default async function PotentialReadPage({
 
       {book.description && (
         <div className="mt-2 border-t border-border pt-4">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-faint">
+            Summary
+          </p>
           <p className="text-sm leading-relaxed text-ink-soft">{book.description}</p>
         </div>
       )}
