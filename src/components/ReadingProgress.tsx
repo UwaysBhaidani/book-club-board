@@ -215,7 +215,7 @@ export default function ReadingProgress({
           }}
         />
         <div
-          className="pointer-events-none absolute top-[-5px] bottom-[-5px]"
+          className="pointer-events-none absolute top-[-9px] bottom-[-9px]"
           style={{
             left: `${displayFrac * 100}%`,
             transform: "translateX(-50%)",
