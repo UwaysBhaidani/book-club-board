@@ -48,6 +48,7 @@ export default async function HomePage() {
       supabase
         .from("profiles")
         .select("id, display_name, avatar_url")
+        .eq("hidden", false)
         .order("display_name", { ascending: true }),
       supabase.from("reading_progress").select("user_id, label").eq("book_id", currentBook.id),
     ]);

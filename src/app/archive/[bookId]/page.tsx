@@ -29,6 +29,7 @@ export default async function ArchiveBookPage({
       supabase
         .from("profiles")
         .select("id, display_name, avatar_url")
+        .eq("hidden", false)
         .order("display_name", { ascending: true }),
       supabase.from("book_ratings").select("user_id, rating").eq("book_id", bookId),
       supabase

@@ -7,6 +7,10 @@ create table if not exists profiles (
   display_name text not null,
   is_admin boolean not null default false,
   avatar_url text,
+  -- Excluded from member-listing views (e.g. "everyone's progress",
+  -- ratings) — used for test/admin accounts that shouldn't clutter
+  -- those lists for real members.
+  hidden boolean not null default false,
   created_at timestamptz not null default now()
 );
 
