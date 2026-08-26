@@ -231,7 +231,7 @@ export default function ReadingProgress({
             className="text-accent-ink"
           >
             <path
-              d="M19 21l-7-5-7 5V3h14z"
+              d="M19 21l-7-3-7 3V3h14z"
               fill="currentColor"
               stroke="currentColor"
               strokeWidth="1"
