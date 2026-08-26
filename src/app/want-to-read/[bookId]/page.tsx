@@ -93,7 +93,7 @@ export default async function PotentialReadPage({
       <BookHero title={book.title} author={book.author} coverUrl={book.cover_url}>
         {(book.genre || book.page_count) && (
           <p className="text-sm text-ink-soft">
-            {[book.genre, book.page_count ? `${book.page_count} pages` : null]
+            {[book.page_count ? `${book.page_count} pages` : null, book.genre]
               .filter(Boolean)
               .join(" · ")}
           </p>

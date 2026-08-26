@@ -19,7 +19,7 @@ export default function BookHero({
   const showCover = coverUrl && !coverFailed;
 
   return (
-    <div className="flex flex-col items-center gap-4 py-6 text-center sm:flex-row sm:items-center sm:gap-6 sm:text-left">
+    <div className="flex flex-col items-center gap-4 py-6 text-center sm:flex-row sm:items-start sm:gap-6 sm:text-left">
       <div className="aspect-[2/3] w-40 flex-none overflow-hidden rounded-card border border-border bg-accent-soft shadow-sm sm:w-48">
         {showCover ? (
           // eslint-disable-next-line @next/next/no-img-element
