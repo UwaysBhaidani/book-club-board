@@ -67,6 +67,27 @@ export default function ReadingProgress({
     return total > 1 ? index / (total - 1) : 0;
   }
 
+  function firstName(name: string) {
+    return name.trim().split(/\s+/)[0];
+  }
+
+  // Group everyone sharing the same stage into one bubble cluster with a
+  // single combined label, then stagger clusters that land close together
+  // onto two rows — otherwise their names would overlap.
+  const groupsByLabel = new Map<string, Entry[]>();
+  for (const e of entries) {
+    (groupsByLabel.get(e.label) ?? groupsByLabel.set(e.label, []).get(e.label)!).push(e);
+  }
+  const progressGroups = Array.from(groupsByLabel.entries())
+    .map(([label, es]) => ({ label, frac: fracForLabel(label), members: es }))
+    .sort((a, b) => a.frac - b.frac);
+
+  const groupRows = progressGroups.reduce<number[]>((rows, g, i) => {
+    const closeToPrevious = i > 0 && g.frac - progressGroups[i - 1].frac < 0.1;
+    rows.push(closeToPrevious && rows[i - 1] === 0 ? 1 : 0);
+    return rows;
+  }, []);
+
   function fracFromClientX(clientX: number) {
     const rect = trackRef.current?.getBoundingClientRect();
     if (!rect || rect.width === 0) return committedFrac;
@@ -151,21 +172,37 @@ export default function ReadingProgress({
         </p>
       </div>
 
-      {entries.length > 0 && (
-        <div className="relative mb-1 h-6">
-          {entries.map((e) => (
+      {progressGroups.length > 0 && (
+        <div className="relative mb-1 h-16">
+          {progressGroups.map((g, i) => (
             <div
-              key={e.userId}
-              className="absolute top-0"
-              style={{ left: `${fracForLabel(e.label) * 100}%`, transform: "translateX(-50%)" }}
-              title={`${e.userId === currentUserId ? "You" : e.name} — ${e.label}`}
+              key={g.label}
+              className="absolute flex flex-col items-center"
+              style={{
+                left: `${g.frac * 100}%`,
+                top: groupRows[i] === 1 ? 26 : 0,
+                transform: "translateX(-50%)",
+              }}
+              title={`${g.members
+                .map((e) => (e.userId === currentUserId ? "You" : e.name))
+                .join(", ")} — ${g.label}`}
             >
-              <Avatar
-                avatarUrl={e.avatarUrl}
-                seed={e.userId}
-                size={22}
-                className="border-2 border-surface"
-              />
+              <div className="flex -space-x-2">
+                {g.members.map((e) => (
+                  <Avatar
+                    key={e.userId}
+                    avatarUrl={e.avatarUrl}
+                    seed={e.userId}
+                    size={22}
+                    className="border-2 border-surface"
+                  />
+                ))}
+              </div>
+              {g.members.length === 1 && (
+                <span className="mt-0.5 whitespace-nowrap text-xs text-ink-faint">
+                  {g.members[0].userId === currentUserId ? "You" : firstName(g.members[0].name)}
+                </span>
+              )}
             </div>
           ))}
         </div>
