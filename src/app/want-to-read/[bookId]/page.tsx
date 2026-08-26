@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import BookHero from "@/components/BookHero";
 import PotentialReadActions from "@/components/PotentialReadActions";
-import EditCoverButton from "@/components/EditCoverButton";
+import EditBookDetailsButton from "@/components/EditBookDetailsButton";
 import PromoteToCurrentButton from "@/components/PromoteToCurrentButton";
 import Avatar from "@/components/Avatar";
 
@@ -123,8 +123,15 @@ export default async function PotentialReadPage({
         )}
 
         {(isAdmin || canRemove) && (
-          <div className="mt-3 flex flex-col items-center gap-2 sm:items-start">
-            <EditCoverButton bookId={book.id} currentUrl={book.cover_url} />
+          <div className="mt-3 flex w-full flex-col items-center gap-2 sm:items-start">
+            <EditBookDetailsButton
+              bookId={book.id}
+              title={book.title}
+              author={book.author}
+              currentCoverUrl={book.cover_url}
+              currentDescription={book.description}
+              currentPageCount={book.page_count}
+            />
             {isAdmin && (
               <PromoteToCurrentButton
                 bookId={book.id}
