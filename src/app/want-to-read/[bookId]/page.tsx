@@ -60,6 +60,9 @@ export default async function PotentialReadPage({
     name: v.profiles?.display_name ?? "Member",
     avatarUrl: v.profiles?.avatar_url ?? null,
   }));
+  // The proposer's vote counts toward the total but never shows in the
+  // public "Wants to read" name list.
+  const visibleVoters = voters.filter((v) => v.userId !== book.added_by);
 
   let isVotedByMe = false;
   if (user) {
@@ -101,11 +104,11 @@ export default async function PotentialReadPage({
 
         {addedByName && <p className="text-xs text-ink-faint">Added by {addedByName}</p>}
 
-        {voters.length > 0 && (
+        {visibleVoters.length > 0 && (
           <div className="mt-1">
             <p className="text-sm text-ink-faint">Wants to read:</p>
             <ul className="mt-1 flex flex-col items-center gap-0.5 sm:items-start">
-              {voters.map((v) => (
+              {visibleVoters.map((v) => (
                 <li key={v.userId} className="flex items-center gap-1.5 text-sm text-ink-soft">
                   <Avatar avatarUrl={v.avatarUrl} seed={v.userId} size={16} />
                   {v.name}

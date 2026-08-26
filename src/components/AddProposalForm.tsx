@@ -49,22 +49,33 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
       // Fall back to whatever raw description/page count we already have.
     }
 
-    const { error } = await supabase.from("books").insert({
-      title: selected.title,
-      author: selected.author,
-      cover_url: selected.cover_url,
-      description,
-      genre,
-      discussion_appeal: discussionAppeal,
-      page_count: pageCount,
-      status: "want_to_read",
-      added_by: currentUserId,
-    });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
+    const { data: book, error } = await supabase
+      .from("books")
+      .insert({
+        title: selected.title,
+        author: selected.author,
+        cover_url: selected.cover_url,
+        description,
+        genre,
+        discussion_appeal: discussionAppeal,
+        page_count: pageCount,
+        status: "want_to_read",
+        added_by: currentUserId,
+      })
+      .select()
+      .single();
+    if (error || !book) {
+      setLoading(false);
+      setError(error?.message ?? "Could not add this book");
       return;
     }
+
+    // Proposing a book counts as an automatic vote for it.
+    await supabase
+      .from("want_to_read_votes")
+      .insert({ book_id: book.id, user_id: currentUserId });
+
+    setLoading(false);
     setSelected(null);
     router.refresh();
   }
