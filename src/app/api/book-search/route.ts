@@ -78,7 +78,10 @@ async function searchGoogleBooks(q: string): Promise<SourceResult> {
     q
   )}&maxResults=${RESULT_LIMIT}&key=${apiKey}`;
 
-  const res = await fetchWithRetry(url, 6000);
+  // Google's Books API backend is noticeably flakier than Open Library's —
+  // transient 503s happen often enough that the default 3 attempts aren't
+  // always enough, so it gets more retries here.
+  const res = await fetchWithRetry(url, 6000, 6);
   if (!res?.ok) return { results: [], failed: true };
 
   try {

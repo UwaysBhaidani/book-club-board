@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const { title, author, rawDescription } = await request.json();
+  const { title, author, rawDescription, pageCount } = await request.json();
 
   if (!title) {
     return NextResponse.json({ error: "Missing title" }, { status: 400 });
@@ -25,6 +25,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const needsPageCount = !pageCount;
+
   try {
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -35,20 +37,21 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 300,
+        max_tokens: 400,
         messages: [
           {
             role: "user",
             content: `Write a short synopsis of the book "${title}"${author ? ` by ${author}` : ""} for a book club's proposed-reads list.
 
-Requirements:
+Requirements for the synopsis:
 - 2-3 sentences, roughly 40-60 words.
 - Spoiler-free: no plot twists, no ending, no character deaths.
 - Engaging back-cover tone, not a dry summary.
 - Plain text only, no markdown formatting, no quotation marks around it.
 ${rawDescription ? `\nHere is a rough existing description you can use as reference (clean it up, don't just copy it verbatim):\n${rawDescription}` : ""}
+${needsPageCount ? `\nAlso estimate the page count of a typical print edition of this book (a single integer, your best approximate knowledge — it's fine to be approximate since editions vary).` : ""}
 
-Respond with ONLY the synopsis text, nothing else.`,
+Respond with ONLY a JSON object of the form ${needsPageCount ? `{"synopsis": "...", "page_count": <integer or null>}` : `{"synopsis": "..."}`}, nothing else.`,
           },
         ],
       }),
@@ -60,10 +63,17 @@ Respond with ONLY the synopsis text, nothing else.`,
     }
 
     const data = await aiRes.json();
-    const synopsis = (data?.content?.[0]?.text ?? "").trim();
+    const text = data?.content?.[0]?.text ?? "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+
+    const synopsis = typeof parsed.synopsis === "string" ? parsed.synopsis.trim() : "";
     if (!synopsis) throw new Error("Empty AI response");
 
-    return NextResponse.json({ synopsis });
+    const generatedPageCount =
+      needsPageCount && typeof parsed.page_count === "number" ? parsed.page_count : null;
+
+    return NextResponse.json({ synopsis, page_count: generatedPageCount });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "AI generation failed" },

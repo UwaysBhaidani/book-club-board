@@ -20,8 +20,10 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
 
     // Rewrite whatever description we found into a short, consistent,
     // spoiler-free synopsis — raw Open Library/Google descriptions vary
-    // wildly in length, quality, and spoiler content.
+    // wildly in length, quality, and spoiler content. Also fills in an
+    // approximate page count when neither source had one.
     let description = selected.description;
+    let pageCount = selected.page_count;
     try {
       const res = await fetch("/api/generate-synopsis", {
         method: "POST",
@@ -30,14 +32,16 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
           title: selected.title,
           author: selected.author,
           rawDescription: selected.description,
+          pageCount: selected.page_count,
         }),
       });
       if (res.ok) {
         const body = await res.json();
         if (body.synopsis) description = body.synopsis;
+        if (!pageCount && body.page_count) pageCount = body.page_count;
       }
     } catch {
-      // Fall back to whatever raw description we already have.
+      // Fall back to whatever raw description/page count we already have.
     }
 
     const { error } = await supabase.from("books").insert({
@@ -45,7 +49,7 @@ export default function AddProposalForm({ currentUserId }: { currentUserId: stri
       author: selected.author,
       cover_url: selected.cover_url,
       description,
-      page_count: selected.page_count,
+      page_count: pageCount,
       status: "want_to_read",
       added_by: currentUserId,
     });

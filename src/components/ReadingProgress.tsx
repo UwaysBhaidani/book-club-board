@@ -67,13 +67,8 @@ export default function ReadingProgress({
     return total > 1 ? index / (total - 1) : 0;
   }
 
-  function firstName(name: string) {
-    return name.trim().split(/\s+/)[0];
-  }
-
   // Group everyone sharing the same stage into one bubble cluster with a
-  // single combined label, then stagger clusters that land close together
-  // onto two rows — otherwise their names would overlap.
+  // single combined label.
   const groupsByLabel = new Map<string, Entry[]>();
   for (const e of entries) {
     (groupsByLabel.get(e.label) ?? groupsByLabel.set(e.label, []).get(e.label)!).push(e);
@@ -81,12 +76,6 @@ export default function ReadingProgress({
   const progressGroups = Array.from(groupsByLabel.entries())
     .map(([label, es]) => ({ label, frac: fracForLabel(label), members: es }))
     .sort((a, b) => a.frac - b.frac);
-
-  const groupRows = progressGroups.reduce<number[]>((rows, g, i) => {
-    const closeToPrevious = i > 0 && g.frac - progressGroups[i - 1].frac < 0.1;
-    rows.push(closeToPrevious && rows[i - 1] === 0 ? 1 : 0);
-    return rows;
-  }, []);
 
   function fracFromClientX(clientX: number) {
     const rect = trackRef.current?.getBoundingClientRect();
@@ -173,14 +162,13 @@ export default function ReadingProgress({
       </div>
 
       {progressGroups.length > 0 && (
-        <div className="relative mb-1 h-16">
-          {progressGroups.map((g, i) => (
+        <div className="relative mb-1 h-6">
+          {progressGroups.map((g) => (
             <div
               key={g.label}
-              className="absolute flex flex-col items-center"
+              className="absolute top-0"
               style={{
                 left: `${g.frac * 100}%`,
-                top: groupRows[i] === 1 ? 26 : 0,
                 transform: "translateX(-50%)",
               }}
               title={`${g.members
@@ -188,21 +176,18 @@ export default function ReadingProgress({
                 .join(", ")} — ${g.label}`}
             >
               <div className="flex -space-x-2">
-                {g.members.map((e) => (
-                  <Avatar
-                    key={e.userId}
-                    avatarUrl={e.avatarUrl}
-                    seed={e.userId}
-                    size={22}
-                    className="border-2 border-surface"
-                  />
-                ))}
+                <Avatar
+                  avatarUrl={g.members[0].avatarUrl}
+                  seed={g.members[0].userId}
+                  size={22}
+                  className="border-2 border-surface"
+                />
+                {g.members.length > 1 && (
+                  <span className="flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border-2 border-surface bg-paper text-[10px] text-ink-faint">
+                    +{g.members.length - 1}
+                  </span>
+                )}
               </div>
-              {g.members.length === 1 && (
-                <span className="mt-0.5 whitespace-nowrap text-xs text-ink-faint">
-                  {g.members[0].userId === currentUserId ? "You" : firstName(g.members[0].name)}
-                </span>
-              )}
             </div>
           ))}
         </div>
