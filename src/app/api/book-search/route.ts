@@ -62,10 +62,6 @@ async function fetchWithRetry(url: string, ms: number, attempts = 3): Promise<Re
   return last;
 }
 
-function dedupeKey(title: string, author: string | null) {
-  return `${title.trim().toLowerCase()}::${(author ?? "").trim().toLowerCase()}`;
-}
-
 // Google's ranking tends to surface the right edition (e.g. the English
 // translation of a foreign-language title) more reliably than Open Library,
 // so its results are shown first — but it requires an API key, so it's
@@ -141,21 +137,19 @@ export async function GET(request: Request) {
     return NextResponse.json({ results: [] });
   }
 
-  const [google, openLibrary] = await Promise.all([searchGoogleBooks(q), searchOpenLibrary(q)]);
+  // Google's relevance ranking is much tighter than Open Library's, which
+  // often pads out results with loosely-matching noise (hymnals, unrelated
+  // comics, etc.) just to fill the count. So Open Library is only used as a
+  // fallback when Google comes back with nothing, not blended in every time.
+  const google = await searchGoogleBooks(q);
+  if (google.results.length > 0) {
+    return NextResponse.json({ results: google.results.slice(0, RESULT_LIMIT) });
+  }
 
+  const openLibrary = await searchOpenLibrary(q);
   if (google.failed && openLibrary.failed) {
     return NextResponse.json({ error: "Book search failed" }, { status: 502 });
   }
 
-  const seen = new Set<string>();
-  const results: BookSearchResult[] = [];
-  for (const r of [...google.results, ...openLibrary.results]) {
-    const key = dedupeKey(r.title, r.author);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    results.push(r);
-    if (results.length >= RESULT_LIMIT) break;
-  }
-
-  return NextResponse.json({ results });
+  return NextResponse.json({ results: openLibrary.results.slice(0, RESULT_LIMIT) });
 }

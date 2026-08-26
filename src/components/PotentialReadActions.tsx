@@ -72,7 +72,13 @@ export default function PotentialReadActions({
       >
         {voted ? "I'm in" : "I want to read this"} · {count}
       </button>
-      {canRemove && <DeleteBookButton bookId={bookId} title={bookTitle} />}
+      {canRemove && (
+        <DeleteBookButton
+          bookId={bookId}
+          title={bookTitle}
+          confirmMessage={`Permanently remove "${bookTitle}"? This also deletes everyone's votes for it.`}
+        />
+      )}
       {error && <p className="w-full text-xs text-accent-ink">{error}</p>}
     </div>
   );

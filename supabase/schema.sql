@@ -195,6 +195,10 @@ create policy "members can add questions"
   on discussion_questions for insert to authenticated with check (true);
 create policy "creators can delete their own questions"
   on discussion_questions for delete to authenticated using (auth.uid() = created_by);
+create policy "creators can edit their own questions"
+  on discussion_questions for update to authenticated
+  using (auth.uid() = created_by)
+  with check (auth.uid() = created_by);
 
 create policy "comments are viewable by everyone signed in"
   on comments for select to authenticated using (true);

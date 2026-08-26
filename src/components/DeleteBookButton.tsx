@@ -38,7 +38,7 @@ export default function DeleteBookButton({
       <button
         onClick={handleClick}
         disabled={loading}
-        className="flex-none rounded-pill border border-border px-3 py-1.5 text-xs font-medium text-ink-faint hover:border-accent hover:text-accent-ink disabled:opacity-50"
+        className="flex-none rounded-pill border border-border px-3 py-1.5 text-xs font-medium text-ink-faint hover:border-red-500 hover:text-red-400 disabled:opacity-50"
       >
         {loading ? "Removing…" : "Remove Book"}
       </button>

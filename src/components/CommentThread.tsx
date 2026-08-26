@@ -350,7 +350,7 @@ export default function CommentThread({
               </button>
               <button
                 onClick={() => handleDelete(c.id)}
-                className="text-xs text-ink-faint hover:text-accent-ink"
+                className="text-xs text-ink-faint hover:text-red-400"
               >
                 Delete
               </button>

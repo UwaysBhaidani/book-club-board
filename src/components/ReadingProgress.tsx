@@ -154,12 +154,13 @@ export default function ReadingProgress({
           ))}
         </div>
       )}
-      <div className="mb-3 flex items-baseline justify-between">
+      <div className="mb-1 flex items-baseline justify-between">
         <p className="text-sm font-medium text-ink">My progress</p>
         <p className="font-mono text-xs uppercase tracking-widest text-accent-ink">
           {stages[displayIndex]}
         </p>
       </div>
+      <p className="mb-3 text-xs text-ink-faint">Drag the bookmark to set your progress</p>
 
       {progressGroups.length > 0 && (
         <div className="relative mb-1 h-6">
@@ -214,14 +215,30 @@ export default function ReadingProgress({
           }}
         />
         <div
-          className="pointer-events-none absolute top-[-3px] bottom-[-3px] w-1 bg-accent-ink"
+          className="pointer-events-none absolute top-[-3px] bottom-[-3px]"
           style={{
             left: `${displayFrac * 100}%`,
             transform: "translateX(-50%)",
             transition: dragFrac === null ? "left 200ms steps(12)" : "none",
-            boxShadow: "0 0 6px var(--color-accent)",
+            filter: "drop-shadow(0 0 4px var(--color-accent))",
           }}
-        />
+        >
+          <svg
+            width="14"
+            height="100%"
+            viewBox="0 0 24 24"
+            preserveAspectRatio="none"
+            className="text-accent-ink"
+          >
+            <path
+              d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
+              fill="currentColor"
+              stroke="currentColor"
+              strokeWidth="1"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
       </div>
 
       <div className="mt-1 flex justify-between font-mono text-[10px] text-ink-faint">

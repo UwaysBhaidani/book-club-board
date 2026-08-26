@@ -180,6 +180,32 @@ export default function SectionBoard({
   const supabase = createClient();
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editQuestionText, setEditQuestionText] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
+  function startEditQuestion(q: DiscussionQuestion) {
+    setEditingQuestionId(q.id);
+    setEditQuestionText(q.question);
+  }
+
+  function cancelEditQuestion() {
+    setEditingQuestionId(null);
+    setEditQuestionText("");
+  }
+
+  async function saveEditQuestion(questionId: string) {
+    if (!editQuestionText.trim()) return;
+    setEditSaving(true);
+    await supabase
+      .from("discussion_questions")
+      .update({ question: editQuestionText.trim() })
+      .eq("id", questionId);
+    setEditSaving(false);
+    setEditingQuestionId(null);
+    setEditQuestionText("");
+    router.refresh();
+  }
 
   async function unlock() {
     setPending(true);
@@ -244,22 +270,57 @@ export default function SectionBoard({
         <div className="mt-4 flex flex-col gap-5">
           {questions.map((q) => (
             <div key={q.id} className="border-t border-border pt-4 first:border-t-0 first:pt-0">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="discussion-text text-sm font-medium text-ink">{q.question}</p>
-                  {!q.is_suggested && q.profiles?.display_name && (
-                    <p className="text-xs text-ink-faint">Added by {q.profiles.display_name}</p>
+              {editingQuestionId === q.id ? (
+                <div className="flex flex-col gap-2">
+                  <input
+                    value={editQuestionText}
+                    onChange={(e) => setEditQuestionText(e.target.value)}
+                    className="rounded-control border border-border bg-paper px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => saveEditQuestion(q.id)}
+                      disabled={editSaving}
+                      className="rounded-pill bg-accent px-3 py-1 text-xs font-medium text-accent-contrast hover:bg-accent-hover disabled:opacity-50"
+                    >
+                      {editSaving ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEditQuestion}
+                      disabled={editSaving}
+                      className="rounded-pill border border-border px-3 py-1 text-xs text-ink-soft hover:border-accent hover:text-accent-ink"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="discussion-text text-sm font-medium text-ink">{q.question}</p>
+                    {!q.is_suggested && q.profiles?.display_name && (
+                      <p className="text-xs text-ink-faint">Added by {q.profiles.display_name}</p>
+                    )}
+                  </div>
+                  {q.created_by === currentUserId && (
+                    <div className="flex flex-none gap-3">
+                      <button
+                        onClick={() => startEditQuestion(q)}
+                        className="text-xs text-ink-faint hover:text-accent-ink"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteQuestion(q.id)}
+                        className="text-xs text-ink-faint hover:text-red-400"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
-                {q.created_by === currentUserId && (
-                  <button
-                    onClick={() => deleteQuestion(q.id)}
-                    className="flex-none text-xs text-ink-faint hover:text-accent-ink"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
+              )}
               <CommentThread
                 questionId={q.id}
                 initialComments={commentsByQuestion[q.id] ?? []}
